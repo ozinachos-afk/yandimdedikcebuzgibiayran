@@ -5113,6 +5113,58 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 </script>
+    <div style="background: rgba(15, 23, 42, 0.9); padding: 25px; border-radius: 15px; border: 1px solid #334155; margin-bottom: 30px; max-width: 900px; margin-left: auto; margin-right: auto; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); font-family: sans-serif;">
+    
+    <h3 style="font-size: 18px; margin-bottom: 15px; font-weight: 700; color: #60a5fa; text-align: center;">
+        ✈️ 🐱🐱🐱Flight Weather Operations (METAR/TAF)
+    </h3>
+    
+    <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+        <input type="text" id="icaoInput" placeholder="ICAO Kodu Giriniz..." 
+               style="flex: 1; padding: 14px; border-radius: 10px; border: 2px solid #334155; background: #020617; color: white; text-transform: uppercase; outline: none; font-family: 'Courier New', monospace; font-size: 18px; letter-spacing: 2px;">
+        
+        <button id="sorgulaBtn" 
+                style="background: #60a5fa; color: #0f172a; padding: 0 30px; border: none; border-radius: 10px; cursor: pointer; font-weight: 800; font-size: 14px; text-transform: uppercase;">
+            SORGULA
+        </button>
+    </div>
+
+    <div id="metarDisplay" style="width: 100%; border-radius: 10px; overflow: hidden; display: none; background: white; height: 550px; border: 3px solid #1e293b;">
+        <iframe id="metarFrame" src="" style="width:100%; height:100%; border:none;"></iframe>
+    </div>
+</div>
+
+<script>
+    // Fonksiyonu doğrudan tanımlıyoruz ki "bulunamadı" hatası vermesin
+    function fetchTafTo() {
+        const input = document.getElementById('icaoInput');
+        const display = document.getElementById('metarDisplay');
+        const frame = document.getElementById('metarFrame');
+        
+        let icao = input.value.trim().toUpperCase();
+
+        if (icao.length === 4) {
+            // taf.to sitesine yönlendiriyoruz
+            frame.src = "https://www.taf.to/" + icao;
+            display.style.display = 'block';
+        } else {
+            alert("Lütfen geçerli bir 4 haneli ICAO kodu giriniz (Örn: LTFM)");
+        }
+    }
+
+    // Butona tıklama olayı
+    document.getElementById('sorgulaBtn').onclick = function() {
+        fetchTafTo();
+    };
+
+    // Enter tuşu desteği
+    document.getElementById('icaoInput').onkeypress = function(e) {
+        if (e.keyCode === 13 || e.which === 13) {
+            fetchTafTo();
+        }
+    };
+</script>
+
 <body>
 
 <div class="fixed top-0 left-0 w-full z-[100000] bg-[#020617]/95 backdrop-blur-md border-b border-indigo-500/20 font-sans shadow-xl h-12 flex items-center justify-between px-6">
@@ -5259,4 +5311,5 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 </script>
+
 </html>
