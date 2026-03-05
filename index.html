@@ -309,6 +309,7 @@
     border-radius: 0 8px 8px 0;
     box-shadow: 5px 0 15px rgba(56, 189, 248, 0.3);
 }
+
 /* Başlık alanı */
 .monitor-header {
     background: #38bdf8;
@@ -428,8 +429,79 @@
 
 .n-tab.active { background: #38bdf8; color: #000; }
 
-.video-frame { width: 100%; aspect-ratio: 16 / 9; }
-.monitor-label { background: #38bdf8; color: #000; font-size: 10px; font-weight: bold; padding: 6px; text-align: center; }
+/* Videonun içinde durduğu kap */
+.video-frame { 
+    width: 100%; 
+    height: auto; /* Yüksekliği içeriğe göre ayarlasın */
+    background: #000;
+    line-height: 0;
+}
+
+/* İşte videoyu kutuya yapıştıran asıl komutlar */
+.video-frame iframe { 
+    width: 100% !important;   /* Kutunun genişliğine zorla yay */
+    height: 253px !important; /* Kutunun yüksekliğine tam otur (Görsele göre ideal yükseklik) */
+    display: block;
+    border: none;
+}
+
+/* DEPREM MONİTÖRÜ ANA KUTUSU */
+#quake-monitor {
+    position: fixed;
+    /* Alt haber bandın 48px + bir parmak boşluk (yaklaşık 17px) = 65px */
+    bottom: 65px; 
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9998;
+    width: 90%;
+    max-width: 800px;
+    pointer-events: auto; /* Tıklanabilir olsun */
+}
+
+/* PANEL İÇ TASARIMI */
+.quake-container {
+    background: rgba(15, 23, 42, 0.9); /* Arka plan koyu cyber */
+    border: 1px solid rgba(245, 158, 11, 0.5); /* Gold çerçeve */
+    border-left: 4px solid #ef4444; /* Kritik uyarı kırmızısı */
+    padding: 8px 15px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 25px rgba(0,0,0,0.7);
+}
+
+/* BAŞLIK ETİKETİ */
+.quake-label {
+    color: #ef4444;
+    font-weight: 800;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    white-space: nowrap;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* AKAN YAZI ALANI */
+#quake-flow {
+    flex-grow: 1;
+    color: #ffffff;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    overflow: hidden;
+}
+
+/* DEPREM BİLGİ KAPSÜLÜ */
+.quake-item {
+    margin-right: 50px;
+    display: inline-block;
+}
+
+.mag-bold {
+    color: #
 
     </style>
 </head>
@@ -577,6 +649,17 @@
 
     <div class="drawer-handle" onclick="toggleDrawer()">
         LIVE NEWS
+    </div>
+</div>
+
+<div id="quake-monitor" style="position: fixed; bottom: 65px; left: 50%; transform: translateX(-50%); z-index: 9999; width: 90%; max-width: 800px;">
+    <div style="background: rgba(15, 23, 42, 0.9); border: 1px solid #f59e0b; border-left: 4px solid #ef4444; padding: 8px 15px; border-radius: 6px; display: flex; align-items: center; gap: 15px; backdrop-filter: blur(10px); box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+        <span style="color: #ef4444; font-weight: 800; font-size: 10px; letter-spacing: 1px; white-space: nowrap;">
+            <i class="fas fa-house-damage"></i> EMSC SEISMIC (5.0+):
+        </span>
+        <div id="quake-flow" style="flex-grow: 1; color: white; font-size: 11px; font-family: 'JetBrains Mono', monospace; overflow: hidden; white-space: nowrap;">
+            <span style="color: #64748b;">SCANNING TECTONIC PLATES...</span>
+        </div>
     </div>
 </div>
 
@@ -957,7 +1040,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Çekmeceyi açıp kapatan mekanizma
+// Çekmeceyi açıp kapatan fonksiyon (Eğer önceki koddaki gibi duruyorsa)
+function toggleFirDrawer() {
+    const drawer = document.getElementById('fir-drawer');
+    if (drawer) {
+        drawer.classList.toggle('open');
+    }
+}
+
+
+// news için Çekmeceyi açıp kapatan mekanizma
 function toggleDrawer() {
     const drawer = document.getElementById('newsDrawer');
     drawer.classList.toggle('open');
@@ -975,7 +1067,59 @@ function yutupDegistir(buton, videoId) {
     const iframe = document.getElementById('yutupEkranı');
     iframe.src = "https://www.youtube.com/embed/" + videoId + "?autoplay=1&mute=1&playlist=" + videoId + "&loop=1";
 }
+// Kanal değiştirme ve buton rengini güncelleme
+function yutupDegistir(buton, videoId) {
+    // Tüm butonlardan 'active' sınıfını kaldır
+    document.querySelectorAll('.n-tab').forEach(b => b.classList.remove('active'));
+    
+    // Tıklanan butonu aktif yap
+    buton.classList.add('active');
 
+    // Iframe'i bul ve kaynağını güncelle (Playlist parametresi hatayı önler)
+    const iframe = document.getElementById('yutupEkranı');
+    iframe.src = "https://www.youtube.com/embed/" + videoId + "?autoplay=1&mute=1&playlist=" + videoId + "&loop=1";
+}
+
+// EMSC Deprem Verilerini Çekme (5.0+)
+async function fetchQuakes() {
+    const quakeFlow = document.getElementById('quake-flow');
+    if (!quakeFlow) return;
+
+    // Netlify ve tarayıcı dostu direkt JSON kaynağı (Son 24 saat, 4.5+ büyüklük)
+    const url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson";
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Veri çekilemedi");
+        const data = await response.json();
+
+        if (data.features && data.features.length > 0) {
+            const html = data.features.map(quake => {
+                const mag = quake.properties.mag.toFixed(1);
+                const loc = quake.properties.place;
+                const time = new Date(quake.properties.time).toLocaleTimeString('tr-TR');
+                
+                return `<span class="quake-item" style="margin-right:50px; display:inline-block;">
+                            <b class="mag-bold" style="color:#ef4444; font-weight:900;">M ${mag}</b> 
+                            <span style="color:#fff; margin-left:5px;">${loc}</span>
+                            <small class="quake-time" style="color:#fbbf24; font-size:9px; margin-left:8px;">${time}</small>
+                        </span>`;
+            }).join('');
+
+            quakeFlow.innerHTML = `<marquee scrollamount="4" onmouseover="this.stop();" onmouseout="this.start();">${html}</marquee>`;
+        } else {
+            // Eğer 4.5+ deprem yoksa takılı kalmasın, bilgi versin
+            quakeFlow.innerHTML = "<span style='color: #10b981;'>[SYSTEM_NOMINAL]: NO MAGNITUDE 4.5+ EVENTS RECORDED</span>";
+        }
+    } catch (e) {
+        console.error("Deprem Hatası:", e);
+        quakeFlow.innerHTML = "<span style='color: #ef4444;'>[SENSOR_OFFLINE]: DATABASE CONNECTION FAILED</span>";
+    }
+}
+
+// Başlat ve her 2 dakikada bir tazele
+fetchQuakes();
+setInterval(fetchQuakes, 120000);
 </script>
 
 
