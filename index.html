@@ -364,6 +364,72 @@
     background: #38bdf8;
 }
 
+/* Çekmece Konumu ve Animasyonu */
+.drawer-wrapper {
+    position: fixed;
+    top: 265px;
+    left: -452px; /* Paneli gizler */
+    display: flex;
+    align-items: flex-start;
+    transition: left 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 9999;
+}
+
+/* Çekmece açıldığında eklenecek sınıf */
+.drawer-wrapper.open {
+    left: 0;
+}
+
+/* Mavi Açma Kulakçığı */
+.drawer-handle {
+    width: 35px;
+    height: 120px;
+    background: #ff0000;
+    color: #000;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    writing-mode: vertical-rl;
+    font-weight: 900;
+    font-size: 11px;
+    letter-spacing: 2px;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 4px 0 15px rgba(56, 189, 248, 0.4);
+}
+
+/* Haber Kutusu Ayarları */
+.news-container { 
+    width: 450px; 
+    border: 2px solid #38bdf8; 
+    background: #000; 
+    border-left: none;
+    border-radius: 0 0 8px 0;
+    overflow: hidden; 
+}
+
+.news-tabs { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    background: #1e293b; 
+    gap: 1px;
+}
+
+.n-tab { 
+    padding: 12px 5px; 
+    cursor: pointer; 
+    background: #0f172a; 
+    color: #94a3b8; 
+    border: none; 
+    font-size: 9px; 
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.n-tab.active { background: #38bdf8; color: #000; }
+
+.video-frame { width: 100%; aspect-ratio: 16 / 9; }
+.monitor-label { background: #38bdf8; color: #000; font-size: 10px; font-weight: bold; padding: 6px; text-align: center; }
 
     </style>
 </head>
@@ -485,6 +551,34 @@
     </div>
 </div>
 
+<div id="newsDrawer" class="drawer-wrapper">
+    <div class="news-container">
+        <div class="monitor-label">🔴 NEWS TERMINAL</div>
+        
+        <div class="news-tabs">
+            <button class="n-tab active" onclick="yutupDegistir(this, 'pqq5c6k70kk')">NTV</button>
+            <button class="n-tab" onclick="yutupDegistir(this, '81f1G4pT5mQ')">H. GLOBAL</button>
+            <button class="n-tab" onclick="yutupDegistir(this, 'dp8PhLsUcFE')">BLOOMBERG</button>
+            <button class="n-tab" onclick="yutupDegistir(this, 'gCNeDWCI0vo')">AL JAZEERA</button>
+            <button class="n-tab" onclick="yutupDegistir(this, 'YDvsBbKfLPA')">SKY NEWS</button>
+            <button class="n-tab" onclick="yutupDegistir(this, 'S1pAOnXmP7Y')">FOX NEWS</button>
+        </div>
+
+        <div class="video-frame">
+            <iframe id="yutupEkranı" 
+                    src="https://www.youtube.com/embed/pqq5c6k70kk?autoplay=1&mute=1&playlist=pqq5c6k70kk&loop=1" 
+                    title="News Player" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    referrerpolicy="strict-origin-when-cross-origin" 
+                    allowfullscreen>
+            </iframe>
+        </div>
+    </div>
+
+    <div class="drawer-handle" onclick="toggleDrawer()">
+        LIVE NEWS
+    </div>
+</div>
 
 <script>
 function launchNews(url) {
@@ -863,15 +957,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Çekmeceyi açıp kapatan fonksiyon (Eğer önceki koddaki gibi duruyorsa)
-function toggleFirDrawer() {
-    const drawer = document.getElementById('fir-drawer');
-    if (drawer) {
-        drawer.classList.toggle('open');
-    }
+// Çekmeceyi açıp kapatan mekanizma
+function toggleDrawer() {
+    const drawer = document.getElementById('newsDrawer');
+    drawer.classList.toggle('open');
 }
 
+// Kanal değiştirme ve buton rengini güncelleme
+function yutupDegistir(buton, videoId) {
+    // Tüm butonlardan 'active' sınıfını kaldır
+    document.querySelectorAll('.n-tab').forEach(b => b.classList.remove('active'));
+    
+    // Tıklanan butonu aktif yap
+    buton.classList.add('active');
 
+    // Iframe'i bul ve kaynağını güncelle (Playlist parametresi hatayı önler)
+    const iframe = document.getElementById('yutupEkranı');
+    iframe.src = "https://www.youtube.com/embed/" + videoId + "?autoplay=1&mute=1&playlist=" + videoId + "&loop=1";
+}
 
 </script>
 
