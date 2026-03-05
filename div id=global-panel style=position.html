@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviation Strategic Feed | Full Tactical Edition</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Montserrat:wght@400;700&display=swap');
+
+        :root {
+            --indigo-dark: #0f172a; 
+            --crimson: #991b1b; 
+            --gold: #b45309; 
+            --text-gold: #fde68a;
+            --text-main: #ffffff;
+            --reddit-orange: #ff4500;
+        }
+
+        body {
+            background-color: var(--indigo-dark);
+            margin: 0;
+            padding: 0;
+            overflow: hidden; 
+            font-family: 'Montserrat', sans-serif;
+            height: 100vh;
+        }
+
+        /* --- ALT HABER BANDI --- */
+        .master-ticker {
+            width: 100%;
+            height: 48px;
+            background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%);
+            border-top: 2px solid var(--crimson);
+            display: flex;
+            align-items: center;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            z-index: 10000;
+            box-shadow: 0 -5px 25px rgba(0,0,0,0.9);
+        }
+
+        .live-panel {
+            background: var(--crimson);
+            color: white;
+            height: 100%;
+            padding: 0 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 100;
+            font-weight: 700;
+            font-size: 0.75rem;
+            letter-spacing: 1.5px;
+            border-right: 2px solid var(--gold);
+        }
+
+        .pulse-icon { width: 7px; height: 7px; background: white; border-radius: 50%; animation: pulse-red 1.5s infinite; }
+
+        .news-flow-area { flex-grow: 1; overflow: hidden; display: flex; align-items: center; }
+        .news-wrap { display: flex; white-space: nowrap; animation: slideLeft 150s linear infinite; }
+        .news-wrap:hover { animation-play-state: paused; }
+        .news-capsule {
+            display: flex; align-items: center; background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1); padding: 5px 15px; margin: 0 10px;
+            border-radius: 5px; text-decoration: none; transition: 0.3s;
+        }
+        .source-tag { font-family: 'JetBrains Mono', monospace; color: var(--gold); font-size: 0.65rem; font-weight: 800; margin-right: 12px; border-right: 1px solid rgba(255,255,255,0.2); padding-right: 12px; }
+        .headline { color: var(--text-main); font-size: 0.85rem; font-weight: 700; }
+        .timestamp { color: var(--text-gold); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; margin-left: 12px; }
+        .zulu-panel { background: rgba(0,0,0,0.4); color: var(--text-gold); padding: 0 20px; height: 100%; display: flex; align-items: center; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 700; border-left: 1px solid var(--crimson); }
+
+        @keyframes slideLeft { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); } 70% { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
+
+        /* --- YANDAN AÇILAN REDDIT TERMINALI --- */
+        #reddit-terminal {
+            position: fixed;
+            right: -610px; 
+            top: 80px;
+            width: 600px;
+            height: calc(100vh - 180px);
+            background: #010409;
+            border: 1px solid #30363d;
+            border-radius: 12px 0 0 12px;
+            z-index: 9998;
+            transition: right 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            box-shadow: -20px 0 60px rgba(0,0,0,0.9);
+        }
+
+        #reddit-terminal.active { right: 0; }
+
+        #terminal-toggle {
+            position: absolute;
+            left: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 160px;
+            background: var(--reddit-orange);
+            color: white;
+            cursor: pointer;
+            border-radius: 12px 0 0 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 11px;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            font-family: monospace;
+            box-shadow: -5px 0 20px rgba(255, 69, 0, 0.4);
+        }
+
+        #reddit-stream::-webkit-scrollbar { width: 4px; }
+        #reddit-stream::-webkit-scrollbar-thumb { background: #30363d; border-radius: 10px; }
+
+        .r-card { padding: 15px; border-bottom: 1px solid #161b22; transition: 0.2s; cursor: pointer; }
+        .r-card:hover { background: #0d1117; border-left: 4px solid var(--reddit-orange); }
+        .r-title { font-size: 13px; color: #e6edf3; display: block; margin-bottom: 6px; font-weight: 500; }
+        .r-meta { display: flex; gap: 8px; font-size: 9px; color: #8b949e; font-family: monospace; }
+        .r-sub { color: var(--reddit-orange); font-weight: bold; text-transform: uppercase; }
+
+        /* --- BUTONLAR VE ARAÇLAR --- */
+        .btn-tool {
+            padding: 5px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;
+            font-size: 9px; letter-spacing: 1px; backdrop-filter: blur(10px);
+            transition: 0.3s; border: 1px solid transparent; text-transform: uppercase;
+            color: white;
+        }
+        .btn-notam { background: rgba(245, 158, 11, 0.2); border-color: #f59e0b; color: #f59e0b; }
+        .btn-windy { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #f87171; }
+        .btn-augur { background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #34d399; }
+        .btn-adsb-ex { background: rgba(31, 111, 235, 0.2); border-color: #1f6feb; color: #58a6ff; }
+        
+        .top-radio-mini { position: fixed; top: 15px; left: 23%; transform: translateX(-50%); z-index: 9999; }
+        .mini-capsule { background: rgba(15, 23, 42, 0.9); border: 1px solid var(--crimson); border-bottom: 2px solid var(--gold); padding: 5px 15px; border-radius: 30px; display: flex; align-items: center; gap: 12px; }
+        .cat-rocking { animation: catMetal 0.35s infinite alternate ease-in-out; }
+        @keyframes catMetal { from { transform: rotate(-12deg); } to { transform: rotate(12deg); } }
+
+/* --- STRATEJİK MONİTÖR (SENİN STİLİNDE) --- */
+#strategic-terminal {
+    position: fixed;
+    top: 100px;
+    right: -400px; /* Başlangıçta gizli */
+    width: 350px;
+    height: 400px;
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid #1e293b;
+    border-left: 3px solid var(--gold);
+    border-radius: 8px 0 0 8px;
+    z-index: 10000;
+    transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(15px);
+    display: flex;
+    flex-direction: column;
+}
+
+#strategic-terminal.active {
+    right: 0; /* Tıklanınca içeri girer */
+}
+
+/* Mevcut diğer CSS'lerinle (density-meter vb.) birleştir */
+.monitor-header {
+    background: rgba(30, 41, 59, 0.5);
+    padding: 6px 12px;
+    font-size: 9px; /* Butonlarındaki gibi küçük ve keskin */
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: var(--gold); /* Başlığı senin gold rengine bağladım */
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    justify-content: space-between;
+    text-transform: uppercase;
+}
+
+.density-meter { 
+    padding: 10px; 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    font-size: 9px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.meter-bar { 
+    flex-grow: 1; 
+    height: 6px; 
+    background: rgba(0,0,0,0.5); 
+    border: 1px solid #333; 
+    border-radius: 10px; 
+    overflow: hidden; 
+}
+
+#density-fill { 
+    height: 100%; 
+    background: #10b981; 
+    box-shadow: 0 0 10px #10b981; /* Işıltı efekti */
+    transition: width 1.5s ease-in-out; 
+}
+
+/* Akış alanının genel yazı rengi */
+.advisory-flow { 
+    flex-grow: 1; 
+    overflow-y: auto; 
+    padding: 8px; 
+    font-size: 10px; 
+    color: #ffffff; /* Tüm yazıları beyaz yap */
+}
+
+/* Her bir haber kartının içindeki yazılar */
+.advisory-card { 
+    border-left: 2px solid #38bdf8; 
+    background: rgba(255,255,255,0.05); /* Arka planı biraz daha belirgin yaptık */
+    margin-bottom: 6px; 
+    padding: 6px 10px; 
+    border-radius: 0 4px 4px 0;
+    color: #ffffff !important; /* Yazı rengini beyaza zorla */
+    line-height: 1.4;
+}
+
+/* Kaynak isminin (US-STATE:) rengi */
+.advisory-source {
+    color: #38bdf8; /* Kaynak ismi hafif mavi kalsın ki okunsun */
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+/* Kritik uyarıların yazı rengi (Kırmızı kartın içinde de beyaz kalsın) */
+.alert-critical { 
+    border-left-color: #ef4444 !important; 
+    background: rgba(239, 68, 68, 0.15) !important;
+    color: #ffffff !important; 
+}
+
+/* Scrollbar'ı uçurma büyüsü */
+#crash-stream::-webkit-scrollbar { display: none !important; width: 0 !important; }
+
+.crash-card {
+    background: rgba(239, 68, 68, 0.05);
+    border-left: 3px solid #ef4444;
+    margin-bottom: 8px;
+    padding: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.left-drawer {
+    position: fixed;
+    left: -455px; /* Başlangıçta gizli */
+    top: 100px;
+    width: 450px;
+    height: 500px;
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid #1e293b;
+    border-right: 3px solid #38bdf8; /* OSINT mavisi */
+    z-index: 10001;
+    transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(15px);
+    display: flex;
+}
+/* fir */
+/* Çekmeceyi daralttık ve modern bir cam efekti verdik */
+/* Çekmecenin ana kutusu - Konumu aşağı kaydırıldı */
+.left-drawer {
+    position: fixed;
+    /* --- KRİTİK DEĞİŞİKLİK: ÜSTTEN BOŞLUK ARTIRILDI (Yaklaşık 3 cm) --- */
+    top: 120px; 
+    /* ------------------------------------------------------------- */
+    left: -280px; /* Başlangıçta gizli */
+    width: 260px; /* Slim genişlik */
+    height: auto; /* İçeriğe göre uzasın */
+    max-height: calc(100vh - 140px); /* Ekrandan taşmaması için sınır */
+    background: rgba(15, 23, 42, 0.95); /* Cyber cam efekti */
+    backdrop-filter: blur(10px);
+    border: 1px solid #38bdf8;
+    border-radius: 0 12px 12px 0; /* Yuvarlak köşeler */
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Akıcı animasyon */
+    z-index: 10000;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* Çekmece açıldığında gelecek hali (Aynı kalıyor) */
+.left-drawer.open {
+    left: 0;
+}
+
+/* Yan tutamaç (Mavi buton) (Aynı kalıyor) */
+.fir-handle {
+    position: absolute;
+    right: -50px;
+    top: 40px; /* Tutamacın çekmece içindeki konumu */
+    background: #38bdf8;
+    color: #0f172a;
+    width: 35px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    writing-mode: vertical-rl;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 5px 0 15px rgba(56, 189, 248, 0.3);
+}
+/* Başlık alanı */
+.monitor-header {
+    background: #38bdf8;
+    color: #000;
+    padding: 8px;
+    font-size: 10px;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 0 11px 0 0;
+}
+
+/* Arama kutusu - Ufak ve derli toplu */
+.search-container {
+    padding: 15px;
+    display: flex;
+    gap: 0;
+}
+
+.search-container input {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-right: none;
+    color: #fff;
+    padding: 8px 12px;
+    width: 100%;
+    font-size: 13px;
+    border-radius: 4px 0 0 4px;
+    outline: none;
+}
+
+.search-container button {
+    background: #38bdf8;
+    border: none;
+    padding: 0 12px;
+    cursor: pointer;
+    color: #000;
+    border-radius: 0 4px 4px 0;
+    transition: opacity 0.2s;
+}
+
+/* Sonuç paneli içi - Kaydırma çubuğunu gizleyelim ama çalışsın */
+.results-panel {
+    padding: 0 15px 15px 15px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.results-panel::-webkit-scrollbar {
+    width: 4px;
+}
+
+.results-panel::-webkit-scrollbar-thumb {
+    background: #38bdf8;
+}
+
+
+    </style>
+</head>
+<body>
+
+<div style="position: fixed; top: 16px; left: 9%; transform: translateX(-50%); z-index: 10000;">
+    <div style="background: rgba(30, 41, 59, 0.6); padding: 5px 18px; border-radius: 50px; border: 1px solid rgba(96, 165, 250, 0.2); display: flex; align-items: center; gap: 12px; backdrop-filter: blur(10px);">
+        <span style="font-size: 10px; font-weight: 800; color: #60a5fa; letter-spacing: 1px;">METAR:</span>
+        <input type="text" id="icaoInput" placeholder="AYKAO" style="width: 70px; background: transparent; border: none; border-bottom: 1px solid #475569; color: white; text-transform: uppercase; font-family: monospace; outline: none; text-align: center;">
+        <button onclick="fetchTafTo()" style="background: #3b82f6; color: white; padding: 4px 12px; border: none; border-radius: 20px; cursor: pointer; font-size: 10px; font-weight: bold;">GET</button>
+    </div>
+</div>
+
+<div class="top-radio-mini">
+    <audio id="rock-radio" src="https://stream.rockantenne.de/heavy-metal/stream/mp3" preload="none"></audio>
+    <div class="mini-capsule">
+        <span id="cat-head" onclick="toggleRadio()" style="cursor:pointer; font-size: 1.3rem;">🐈‍⬛</span>
+        <button onclick="toggleRadio()" style="background:none; border:none; color:white; cursor:pointer;"><i class="fas fa-play" id="radio-status-icon"></i></button>
+        <input type="range" min="0" max="1" step="0.1" value="0.5" oninput="document.getElementById('rock-radio').volume=this.value" style="width: 40px; accent-color: var(--crimson);">
+    </div>
+</div>
+
+<div style="position: fixed; top: 15px; right: 20px; z-index: 10000; display: flex; gap: 10px; align-items: center;">
+    <button onclick="openCustomPopup('https://notams.aim.faa.gov/notamSearch/nsapp.html#/', 'NOTAM')" class="btn-tool btn-notam">📋 NOTAM</button>
+    <button onclick="openCustomPopup('https://www.windy.com/tr/', 'WINDY')" class="btn-tool btn-windy">🌀 WINDY</button>
+    <button onclick="openCustomPopup('https://augur.eurocontrol.int/map/', 'AUGUR')" class="btn-tool btn-augur">🛰️ AUGUR</button>
+    <button onclick="openCustomPopup('https://globe.adsbexchange.com/', 'ADSB_EXCHANGE')" class="btn-tool btn-adsb-ex">✈️ ADSB EX</button>
+    <button onclick="openRiskMap()" style="background: rgba(239, 68, 68, 0.4); color: #f87171; border: 1px solid #ef4444; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 9px;">⚠️ RISK MAP</button>
+</div>
+
+<div id="reddit-terminal">
+    <div id="terminal-toggle" onclick="toggleTerminal()">
+        <i class="fas fa-chevron-left" id="toggle-icon"></i> 
+        OSINT_INTELLIGENCE_FEED
+    </div>
+    <div style="background: #161b22; padding: 12px 16px; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 10px; font-weight: 800; color: var(--reddit-orange); font-family: monospace;">SIGNAL_STRENGTH: NOMINAL</span>
+        <button onclick="fetchRedditIntel()" style="background: transparent; border: 1px solid #30363d; color: #8b949e; font-size: 8px; padding: 2px 8px; cursor: pointer;">RE-SYNC</button>
+    </div>
+    <div id="reddit-stream" style="flex-grow: 1; overflow-y: scroll; background: #010409;">
+        <div style="padding: 40px; text-align: center; color: #484f58; font-family: monospace; font-size: 11px;">DECODING_ENCRYPTED_CHANNELS...</div>
+    </div>
+</div>
+
+<div class="master-ticker">
+    <div class="live-panel"><div class="pulse-icon"></div> <span>NEWS</span></div>
+    <div class="news-flow-area"><div class="news-wrap" id="ticker-target"></div></div>
+    <div class="zulu-panel" id="zulu-clock">00:00:00 Z</div>
+</div>
+
+<div id="metarModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10001; width: 85%; max-width: 900px; background: #f8fafc; border-radius: 12px; border: 4px solid #334155; box-shadow: 0 0 50px rgba(0,0,0,0.8);">
+    <div style="background: #1e293b; padding: 12px; display: flex; justify-content: space-between; align-items: center;"><span id="modalTitle" style="color:#60a5fa; font-weight:bold; font-family:monospace;">WEATHER_REPORT</span><button onclick="closeMetar()" style="background:#ef4444; color:white; border:none; padding:5px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">GAPAT 🐲</button></div>
+    <div style="height: 600px;"><iframe id="metarFrame" src="" style="width:100%; height:100%; border:none;"></iframe></div>
+</div>
+
+<div id="infoModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10002; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div style="background: white; width: 96%; height: 92vh; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 100px rgba(0,0,0,0.5);">
+        <div style="background: #7f1d1d; padding: 12px; display: flex; justify-content: space-between; color: white;"><span style="font-weight:bold; font-family:monospace;">CONFLICT_ZONE_MONITOR (SAFEAIRSPACE.NET)</span><button onclick="closeModal()" style="background:#ef4444; color:white; border:none; cursor:pointer; padding:5px 15px; font-weight:bold; border-radius:4px;">GAPAT 🐲 </button></div>
+        <iframe id="infoFrame" src="" style="flex-grow: 1; border: none;"></iframe>
+    </div>
+</div>
+
+<div id="radar-toggle-btn" class="btn-tool btn-augur" style="position:fixed; bottom: 100px; right: 20px; z-index: 10001;" onclick="toggleRadar()">
+    <i class="fas fa-satellite-dish"></i> 🍕MONITOR🍕
+</div>
+
+<div id="strategic-terminal" class="terminal-box">
+    <div class="monitor-header">
+        <span><i class="fas fa-satellite-dish"></i> STRATEGIC MONITOR <small style="font-size: 7px; opacity: 0.6; margin-left: 5px;">[30N-40E Grid]</small></span>
+        <span onclick="toggleRadar()" style="cursor:pointer; color: #ef4444;"><i class="fas fa-times"></i></span>
+    </div>
+
+    <div class="density-meter">
+        <div id="density-status" style="width: 100%; color: #f8fafc;">
+            <span style="font-size: 8px;">INITIALIZING RADAR...</span>
+        </div>
+        <div class="meter-bar">
+            <div id="density-fill" style="width: 0%; transition: width 2s ease;"></div>
+        </div>
+    </div>
+
+    <div id="advisory-stream" class="advisory-flow">
+        </div>
+</div>
+
+<div id="crash-toggle-btn" class="btn-tool" style="position:fixed; bottom: 130px; right: 20px; z-index: 10001; background: #ef4444; color: white; padding: 10px; border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: bold; border: 1px solid #7f1d1d;" onclick="toggleCrashPanel()">
+    <i class="fas fa-exclamation-triangle"></i> CRASH MONITOR
+</div>
+
+<div id="crash-terminal" class="terminal-box" style="position: fixed; top: 150px; right: -400px; width: 350px; height: 400px; background: rgba(15, 23, 42, 0.98); border: 1px solid #1e293b; border-left: 3px solid #ef4444; border-radius: 8px 0 0 8px; z-index: 10000; transition: 0.5s; backdrop-filter: blur(15px); display: flex; flex-direction: column;">
+    <div class="monitor-header" style="background: rgba(239, 68, 68, 0.15); padding: 8px 12px; font-size: 10px; font-weight: bold; color: #ef4444; display: flex; justify-content: space-between; border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
+        <span><i class="fas fa-plane-arrival"></i> INCIDENT REPORT [GLOBAL]</span>
+        <span onclick="toggleCrashPanel()" style="cursor:pointer;"><i class="fas fa-times"></i></span>
+    </div>
+    
+    <div id="crash-stream" style="flex-grow: 1; overflow-y: auto; padding: 10px; scrollbar-width: none; -ms-overflow-style: none;">
+        <div class="blink" style="color: #ef4444; font-size: 10px; padding: 20px;">> SCANNING SATELLITE DATA FOR INCIDENTS...</div>
+    </div>
+</div>
+
+<div id="fir-drawer" class="left-drawer">
+    <div class="fir-handle" onclick="toggleFirDrawer()">
+        <i class="fas fa-search"></i>FIR LOOKUP
+    </div>
+
+    <div class="drawer-content">
+        <div class="monitor-header">FIR ID SEARCH</div>
+        
+        <div class="search-container">
+            <input type="text" id="icao-input" placeholder="🐲🐉🦖 (e.g. LTAA)" maxlength="4">
+            <button onclick="searchICAO()">
+                <i class="fas fa-satellite-dish"></i>
+            </button>
+        </div>
+
+        <div id="search-results" class="results-panel">
+            <div class="placeholder-text"></div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+function launchNews(url) {
+    // Videoyu 800x450 boyutunda, araç çubukları olmayan şık bir yan pencerede açar.
+    // Bu sayede "Kullanılamaz" hatasını %100 aşarsın.
+    window.open(url, 'NewsWindow', 'width=800,height=450,menubar=no,status=no,location=no,toolbar=no');
+}
+</script>
+
+<script>
+function openLive(url) {
+    // Videoyu yan sekmede veya küçük pop-up pencerede açar
+    window.open(url, '_blank', 'width=1000,height=600,menubar=no,status=no,location=no');
+}
+</script>
+
+<script>
+    const radio = document.getElementById('rock-radio');
+
+    // --- PANEL & RADYO KONTROL ---
+    function toggleTerminal() {
+        const t = document.getElementById('reddit-terminal');
+        const i = document.getElementById('toggle-icon');
+        t.classList.toggle('active');
+        i.className = t.classList.contains('active') ? "fas fa-chevron-right" : "fas fa-chevron-left";
+    }
+
+    async function toggleRadio() {
+        const icon = document.getElementById('radio-status-icon');
+        const cat = document.getElementById('cat-head');
+        if (radio.paused) { await radio.play(); icon.className="fas fa-stop"; cat.classList.add('cat-rocking'); }
+        else { radio.pause(); icon.className="fas fa-play"; cat.classList.remove('cat-rocking'); }
+    }
+
+    function clock() { document.getElementById('zulu-clock').innerText = new Date().toISOString().slice(11, 19) + " Z"; }
+    setInterval(clock, 1000);
+
+    // --- STRATEJİK ARAÇLAR ---
+    function openCustomPopup(url, name) {
+        window.open(url, name, `width=1200,height=800,top=100,left=100,resizable=yes,scrollbars=yes`);
+    }
+
+    function fetchTafTo() {
+        const icao = document.getElementById('icaoInput').value.trim().toUpperCase();
+        if(icao.length === 4) { 
+            document.getElementById('metarFrame').src = "https://www.taf.to/" + icao; 
+            document.getElementById('modalTitle').innerText = "WEATHER_REPORT: " + icao;
+            document.getElementById('metarModal').style.display = 'block'; 
+        } else { alert("4 haneli ICAO kodu giriniz (Örn: LTBA)"); }
+    }
+    function closeMetar() { document.getElementById('metarModal').style.display = 'none'; document.getElementById('metarFrame').src = ""; }
+
+    function openRiskMap() { document.getElementById('infoFrame').src = "https://safeairspace.net/"; document.getElementById('infoModal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('infoModal').style.display = 'none'; document.getElementById('infoFrame').src = ""; }
+
+    // --- DATA MOTORLARI (REDDIT & RSS) ---
+    async function fetchRedditIntel() {
+        const stream = document.getElementById('reddit-stream');
+        const subs = ['trumptweets', 'UkrainianConflict', 'geopolitics', 'ConflictNews', 
+        'europe', 'NorthKoreaNews', 'UpliftingNews', 'AnythingGoesNews', 
+        'worldnews', 'conspiracy', 'ADSB', 'flightradar24', 
+        'MiddleEastNews', 'news', 'politics', 'Intelligence', 'war'];
+        let masterFeed = [];
+        const promises = subs.map(sub => fetch(`https://www.reddit.com/r/${sub}/new.json?limit=10`).then(r => r.json()).then(json => {
+            if(json.data) json.data.children.forEach(post => {
+                masterFeed.push({ title: post.data.title, link: 'https://reddit.com'+post.data.permalink, time: post.data.created_utc*1000, sub: post.data.subreddit, ups: post.data.ups });
+            });
+        }).catch(() => {}));
+        await Promise.all(promises);
+        masterFeed.sort((a,b) => b.time - a.time);
+        stream.innerHTML = masterFeed.map(i => `
+            <div class="r-card" onclick="window.open('${i.link}','_blank')">
+                <span class="r-title">${i.title}</span>
+                <div class="r-meta"><span class="r-sub">r/${i.sub}</span> <span>↑ ${i.ups}</span> <span>${new Date(i.time).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})}</span></div>
+            </div>`).join('');
+    }
+
+    async function updateIntelligence() {
+        const target = document.getElementById('ticker-target');
+        const feeds = [
+            {n: "AIRPORT", u: "https://www.airporthaber.com/rss.php"},
+            {n: "AIRLINE", u: "https://www.airlinehaber.com/feed/"},
+            {n: "SIMPLE", u: "https://simpleflying.com/feed/"},
+            {n: "HAVASOSYAL", u: "https://havasosyalmedya.com/feed/" },
+            {n: "AVGEEK CLUB", u: "https://theaviationgeekclub.com/feed/" },
+            { n: "AIRLIVE", u: "https://airlive.net/feed/" },
+            {n: "DEFENSE", u: "https://www.defensenews.com/arc/outboundfeeds/rss/category/home/"}
+        ];
+        let pool = [];
+        for(let f of feeds) {
+            try {
+                const r = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(f.u)}`);
+                const d = await r.json();
+                if(d.status === 'ok') d.items.forEach(i => pool.push({s: f.n, t: i.title, l: i.link, d: new Date(i.pubDate)}));
+            } catch(e) {}
+        }
+        pool.sort((a,b) => b.d - a.d);
+        const html = pool.slice(0,30).map(a => `<a href="${a.l}" target="_blank" class="news-capsule"><span class="source-tag">${a.s}</span><span class="headline">${a.t}</span></a>`).join('');
+        target.innerHTML = html + html;
+    }
+
+    window.onload = () => { fetchRedditIntel(); updateIntelligence(); clock(); };
+    setInterval(fetchRedditIntel, 300000); // 5 dk bir reddit yenile
+    setInterval(updateIntelligence, 600000); // 10 dk bir RSS yenile
+
+// --- 1. AÇMA KAPAMA FONKSİYONU ---
+function toggleRadar() {
+    const terminal = document.getElementById('strategic-terminal');
+    if (terminal) {
+        terminal.classList.toggle('active');
+    }
+}
+
+// --- 2. STRATEJİK RADAR & TACTICAL OSINT (MILITARY & AIRSPACE) ---
+async function updateStrategicData() {
+    const densityFill = document.getElementById('density-fill');
+    const densityStatus = document.getElementById('density-status');
+    const advisoryStream = document.getElementById('advisory-stream');
+
+    // --- BÖLÜM A: RADAR (GLOBAL + REGIONAL) ---
+    try {
+        const [gRes, rRes] = await Promise.all([
+            fetch('https://opensky-network.org/api/states/all'),
+            fetch('https://opensky-network.org/api/states/all?lamin=30.0&lomin=30.0&lamax=36.0&lomax=40.0')
+        ]);
+        const gData = await gRes.json();
+        const rData = await rRes.json();
+        const gCount = gData.states ? gData.states.length : 0;
+        const rCount = rData.states ? rData.states.length : 0;
+
+        let ratio = Math.min((rCount / 80) * 100, 100);
+        if(densityFill) {
+            densityFill.style.width = ratio + '%';
+            densityFill.style.background = ratio < 25 ? '#ef4444' : '#10b981';
+        }
+        if(densityStatus) {
+            densityStatus.innerHTML = `
+                <div style="display: flex; justify-content: space-between; width: 100%; font-size: 8px; font-family: monospace;">
+                    <span style="color:#38bdf8;">[GLOBAL_AIR]: ${gCount.toLocaleString()}</span>
+                    <span style="color:#fbbf24;">[REGION_ACTIVE]: ${rCount}</span>
+                </div>`;
+        }
+    } catch (e) { console.warn("Radar update failed."); }
+
+    // --- BÖLÜM B: TACTICAL OSINT MOTORU ---
+    if (advisoryStream) {
+        const mapHeader = `
+            <div onclick="window.open('https://travelmaps.state.gov/TSGMap/', 'AdvisoryMap', 'width=1200,height=800')" 
+                 style="cursor:pointer; background:rgba(239, 68, 68, 0.15); border:1px solid #ef4444; padding:8px; margin-bottom:10px; text-align:center; border-radius:4px;" class="blink">
+                <i class="fas fa-radiation"></i> <span style="font-size:10px; font-weight:bold; color:#ef4444;">TRAVEL ADVISORIES MAP</span>
+            </div>
+        `;
+
+        // Taktik Haber Kaynakları ve Kritik Sorgular
+        const queries = [
+            { name: 'MIL-TIMES', q: 'site:militarytimes.com news', color: '#f87171' },
+            { name: 'DEF-NEWS', q: 'site:defensenews.com', color: '#60a5fa' },
+            { name: 'TACTICAL', q: '"airspace closure" OR "airport closed" OR "conflict zone" OR "military operation"', color: '#fbbf24' },
+            { name: 'AIR-INTEL', q: 'site:airforcetimes.com', color: '#c084fc' }
+        ];
+
+        advisoryStream.innerHTML = mapHeader + '<div class="blink" style="font-size:8px; color:#ef4444; padding:10px;">> SCANNING FOR TACTICAL THREATS...</div>';
+
+        const fetchTacticalNews = async (src) => {
+            try {
+                // Sadece son 24 saatteki haberleri çekmek için 'when:24h' parametresini ekliyoruz
+                const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(src.q)}+when:24h&hl=en-US&gl=US&ceid=US:en`;
+                const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`);
+                const data = await response.json();
+                
+                if (data.status === 'ok') {
+                    return data.items.map(item => ({
+                        source: src.name,
+                        title: item.title.split(' - ')[0],
+                        link: item.link,
+                        color: src.color,
+                        timestamp: new Date(item.pubDate).getTime(),
+                        timeStr: new Date(item.pubDate).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})
+                    }));
+                }
+                return [];
+            } catch (err) { return []; }
+        };
+
+        const results = await Promise.all(queries.map(q => fetchTacticalNews(q)));
+        
+        // Tüm haberleri birleştir ve en yeniye göre (timestamp) sırala
+        let newsPool = results.flat().sort((a, b) => b.timestamp - a.timestamp);
+
+        if (newsPool.length > 0) {
+            advisoryStream.innerHTML = mapHeader + newsPool.map(news => {
+                // Kritik anahtar kelimeler geçerse kırmızı alarm ver
+                const isCritical = /Closed|Closure|War|Attack|Strike|Killed|Savaş|Saldırı|Kapatıldı/i.test(news.title);
+                return `
+                    <div class="advisory-card ${isCritical ? 'alert-critical' : ''}" 
+                         onclick="window.open('${news.link}', '_blank')" 
+                         style="cursor:pointer; margin-bottom:4px; border-left: 3px solid ${news.color}; padding:6px; background: rgba(255,255,255,0.03);">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                            <span style="color:${news.color}; font-weight:bold; font-size:7px;">[${news.source}]</span>
+                            <span style="font-size:6px; opacity:0.6; color:#fff;">${news.timeStr}</span>
+                        </div>
+                        <div style="font-size:9px; line-height:1.3; color:#e2e8f0; font-family:'Courier New', monospace;">${news.title}</div>
+                    </div>`;
+            }).join('');
+        } else {
+            advisoryStream.innerHTML = mapHeader + '<div class="advisory-card">NO TACTICAL UPDATES IN LAST 24H</div>';
+        }
+    }
+}
+
+// --- 3. ÇALIŞTIRICI ---
+updateStrategicData();
+setInterval(updateStrategicData, 300000); // 5 dakikada bir güncelle
+
+// --- CRASH MONITOR: OSINT BYPASS ENGINE ---
+async function updateCrashData() {
+    const stream = document.getElementById('crash-stream');
+    if (!stream) return;
+
+    // Arama Sorgusu (Kelime dağarcığını genişlettik)
+    const query = '"plane crash" OR "aircraft accident" OR "emergency landing" OR "uçak kazası"';
+    
+    // Google News RSS URL
+    const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}+when:48h&hl=en-US&gl=US&ceid=US:en`;
+    
+    // Alternatif ve daha güçlü bir Proxy (Burası sihirli değnek)
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
+
+    try {
+        const response = await fetch(proxyUrl);
+        const json = await response.json();
+        
+        // Google RSS verisi XML formatında gelir, onu parçalıyoruz
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(json.contents, "text/xml");
+        const items = xml.querySelectorAll("item");
+
+        if (items.length > 0) {
+            let htmlContent = "";
+            items.forEach(item => {
+                const title = item.querySelector("title").textContent.split(' - ')[0];
+                const link = item.querySelector("link").textContent;
+                const pubDate = new Date(item.querySelector("pubDate").textContent);
+                
+                const day = pubDate.getDate().toString().padStart(2, '0');
+                const month = pubDate.toLocaleString('en-US', {month:'short'}).toUpperCase();
+                const timeStr = pubDate.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+
+                htmlContent += `
+                    <div class="crash-card" onclick="window.open('${link}', '_blank')" 
+                         style="border-left: 3px solid #ef4444; margin-bottom: 8px; padding: 10px; background: rgba(239, 68, 68, 0.08); border-radius: 0 5px 5px 0; cursor: pointer;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <span style="color:#ef4444; font-weight:bold; font-size:8px; letter-spacing:1px;">[ALERT-OSINT]</span>
+                            <span style="font-size:7px; color:#94a3b8; font-family:monospace;">${day} ${month} | ${timeStr}</span>
+                        </div>
+                        <div style="font-size:10px; color:#f8fafc; line-height:1.4; font-family:'Courier New', monospace;">${title}</div>
+                    </div>
+                `;
+            });
+            stream.innerHTML = htmlContent;
+        } else {
+            stream.innerHTML = '<div style="color:#94a3b8; font-size:10px; padding:20px; text-align:center;">> NO RECENT INCIDENTS DETECTED</div>';
+        }
+    } catch (e) {
+        console.error("Fetch hatası:", e);
+        // Eğer her şey çökerse en azından bir "Deneme yapılıyor" mesajı ver
+        stream.innerHTML = '<div style="color:#fbbf24; font-size:10px; padding:20px; text-align:center;">> SEARCHING GLOBAL ENGINES...</div>';
+        setTimeout(updateCrashData, 15000);
+    }
+}
+// Panel açma-kapama fonksiyonu
+function toggleCrashPanel() {
+    const term = document.getElementById('crash-terminal');
+    if (term) {
+        // Style üzerinden kontrol yerine class üzerinden kontrol daha sağlıklıdır ama senin mantığından gidelim
+        if (term.classList.contains('active')) {
+            term.classList.remove('active');
+            term.style.right = "-400px";
+        } else {
+            term.classList.add('active');
+            term.style.right = "0px";
+            // Panel açıldığında veriyi tazele
+            updateCrashData();
+        }
+    }
+}
+
+// --- 3. FIR ---
+let firMap;
+let firLayer;
+
+function toggleFirDrawer() {
+    const drawer = document.getElementById('fir-drawer');
+    drawer.classList.toggle('active');
+    
+    // Harita ilk kez açılıyorsa oluştur
+    if (!firMap) {
+        initFirMap();
+    }
+}
+// FIR VERİ HAVUZU (Senin verdiğin tam liste)
+const FIR_DATA = [{"designator":"AGGG","type":"FIR","upper":"Infinity","lower":0,"name":"Honiara FIR"},{"designator":"ANAU","type":"FIR","upper":"Infinity","lower":0,"name":"Nauru FIR"},{"designator":"AYPM","type":"FIR","upper":"Infinity","lower":0,"name":"Port Moresby FIR"},{"designator":"BGGL","type":"FIR","upper":"Infinity","lower":0,"name":"Nuuk FIR"},{"designator":"BIRD","type":"FIR","upper":"Infinity","lower":0,"name":"Reykjavik FIR"},{"designator":"CZEG","type":"FIR","upper":"Infinity","lower":0,"name":"Edmonton FIR"},{"designator":"CZQM","type":"FIR","upper":"Infinity","lower":0,"name":"Moncton FIR"},{"designator":"CZQX","type":"FIR","upper":"Infinity","lower":0,"name":"Gander FIR"},{"designator":"CZUL","type":"FIR","upper":"Infinity","lower":0,"name":"Montreal FIR"},{"designator":"CZVR","type":"FIR","upper":"Infinity","lower":0,"name":"Vancouver FIR"},{"designator":"CZWG","type":"FIR","upper":"Infinity","lower":0,"name":"Winnipeg FIR"},{"designator":"CZYZ","type":"FIR","upper":"Infinity","lower":0,"name":"Toronto FIR"},{"designator":"DAAA","type":"FIR","upper":"Infinity","lower":0,"name":"Alger FIR"},{"designator":"DGAC","type":"FIR","upper":"Infinity","lower":0,"name":"Accra FIR"},{"designator":"DNKK","type":"FIR","upper":"Infinity","lower":0,"name":"Kano FIR"},{"designator":"DRRR","type":"FIR","upper":245,"lower":0,"name":"Niamey FIR"},{"designator":"DRRR","type":"UIR","upper":"Infinity","lower":245,"name":"Niamey UIR"},{"designator":"DTTC","type":"FIR","upper":245,"lower":0,"name":"Tunis FIR"},{"designator":"DTTC","type":"UIR","upper":"Infinity","lower":245,"name":"Tunis UIR"},{"designator":"EBBU","type":"FIR","upper":195,"lower":0,"name":"Brussels FIR"},{"designator":"EBUR","type":"UIR","upper":"Infinity","lower":195,"name":"Brussels UIR"},{"designator":"EDGG","type":"FIR","upper":245,"lower":0,"name":"Langen FIR"},{"designator":"EDMM","type":"FIR","upper":245,"lower":0,"name":"Munchen FIR"},{"designator":"EDUU","type":"UIR","upper":"Infinity","lower":245,"name":"Rhein UIR"},{"designator":"EDVV","type":"UIR","upper":"Infinity","lower":245,"name":"Hannover UIR"},{"designator":"EDWW","type":"FIR","upper":245,"lower":0,"name":"Bremen FIR"},{"designator":"EETT","type":"FIR","upper":"Infinity","lower":0,"name":"Tallinn FIR"},{"designator":"EFIN","type":"FIR","upper":285,"lower":0,"name":"Helsinki FIR"},{"designator":"EFIN","type":"UIR","upper":"Infinity","lower":285,"name":"Helsinki UIR"},{"designator":"EGGX","type":"FIR","upper":"Infinity","lower":0,"name":"Shanwick FIR"},{"designator":"EGPX","type":"FIR","upper":245,"lower":0,"name":"Scottish FIR"},{"designator":"EGPX","type":"UIR","upper":"Infinity","lower":245,"name":"Scottish UIR"},{"designator":"EGTT","type":"FIR","upper":245,"lower":0,"name":"London FIR"},{"designator":"EGTT","type":"UIR","upper":"Infinity","lower":245,"name":"London UIR"},{"designator":"EHAA","type":"FIR","upper":"Infinity","lower":0,"name":"Amsterdam FIR"},{"designator":"EISN","type":"FIR","upper":245,"lower":0,"name":"Shannon FIR"},{"designator":"EISN","type":"UIR","upper":"Infinity","lower":245,"name":"Shannon UIR"},{"designator":"EKDK","type":"FIR","upper":"Infinity","lower":0,"name":"Copenhagen FIR"},{"designator":"ENOB","type":"FIR","upper":"Infinity","lower":0,"name":"Bodo Oceanic FIR"},{"designator":"ENOR","type":"FIR","upper":"Infinity","lower":0,"name":"Polaris FIR"},{"designator":"EPWW","type":"FIR","upper":"Infinity","lower":0,"name":"Warszawa FIR"},{"designator":"ESAA","type":"FIR","upper":"Infinity","lower":0,"name":"Sweden FIR"},{"designator":"EVRR","type":"FIR","upper":"Infinity","lower":0,"name":"Riga FIR"},{"designator":"EYVL","type":"FIR","upper":195,"lower":0,"name":"Vilnius FIR"},{"designator":"EYVL","type":"UIR","upper":"Infinity","lower":195,"name":"Vilnius UIR"},{"designator":"FACA","type":"FIR","upper":"Infinity","lower":0,"name":"Cape Town FIR"},{"designator":"FAJA","type":"FIR","upper":"Infinity","lower":0,"name":"Johannesburg FIR"},{"designator":"FAJO","type":"FIR","upper":"Infinity","lower":0,"name":"Johannesburg Oceanic FIR"},{"designator":"FBGR","type":"FIR","upper":"Infinity","lower":0,"name":"Gaborone FIR"},{"designator":"FCCC","type":"FIR","upper":245,"lower":0,"name":"Brazzaville FIR"},{"designator":"FCCC","type":"UIR","upper":"Infinity","lower":245,"name":"Brazzaville UIR"},{"designator":"FIMM","type":"FIR","upper":"Infinity","lower":0,"name":"Mauritius FIR"},{"designator":"FLFI","type":"FIR","upper":"Infinity","lower":0,"name":"Lusaka FIR"},{"designator":"FMMM","type":"FIR","upper":245,"lower":0,"name":"Antananarivo FIR"},{"designator":"FMMM","type":"UIR","upper":"Infinity","lower":245,"name":"Antananarivo UIR"},{"designator":"FNAN","type":"FIR","upper":145,"lower":0,"name":"Luanda FIR"},{"designator":"FNAN","type":"UIR","upper":"Infinity","lower":145,"name":"Luanda UIR"},{"designator":"FQBE","type":"FIR","upper":"Infinity","lower":0,"name":"Beira FIR"},{"designator":"FSSS","type":"FIR","upper":"Infinity","lower":0,"name":"Seychelles FIR"},{"designator":"FTTT","type":"FIR","upper":245,"lower":0,"name":"N'Djamena FIR"},{"designator":"FTTT","type":"UIR","upper":"Infinity","lower":245,"name":"N'Djamena UIR"},{"designator":"FVHF","type":"FIR","upper":245,"lower":0,"name":"Harare FIR"},{"designator":"FVHF","type":"UIR","upper":"Infinity","lower":245,"name":"Harare UIR"},{"designator":"FWLL","type":"FIR","upper":"Infinity","lower":0,"name":"Lilongwe FIR"},{"designator":"FYWF","type":"FIR","upper":"Infinity","lower":0,"name":"Windhoek FIR"},{"designator":"FZZA","type":"FIR","upper":245,"lower":0,"name":"Kinshasa FIR"},{"designator":"FZZA","type":"UIR","upper":"Infinity","lower":245,"name":"Kinshasa UIR"},{"designator":"GCCC","type":"FIR","upper":195,"lower":0,"name":"Canarias FIR"},{"designator":"GCCC","type":"UIR","upper":245,"lower":195,"name":"Canarias UIR"},{"designator":"GCCC","type":"UIR","upper":"Infinity","lower":195,"name":"Canarias UIR"},{"designator":"GLRB","type":"FIR","upper":"Infinity","lower":0,"name":"Roberts FIR"},{"designator":"GMMM","type":"FIR","upper":195,"lower":0,"name":"Casablanca FIR"},{"designator":"GMMM","type":"UIR","upper":"Infinity","lower":195,"name":"Casablanca UIR"},{"designator":"GOOO","type":"FIR","upper":245,"lower":0,"name":"Dakar FIR"},{"designator":"GOOO","type":"UIR","upper":"Infinity","lower":245,"name":"Dakar UIR"},{"designator":"GVSC","type":"FIR","upper":245,"lower":0,"name":"Sal Oceanic FIR"},{"designator":"GVSC","type":"UIR","upper":"Infinity","lower":245,"name":"Sal Oceanic UIR"},{"designator":"HAAA","type":"FIR","upper":"Infinity","lower":0,"name":"Addis Abeba FIR"},{"designator":"HBBA","type":"FIR","upper":245,"lower":0,"name":"Bujumbura FIR"},{"designator":"HBBA","type":"UIR","upper":"Infinity","lower":245,"name":"Bujumbura UIR"},{"designator":"HCSM","type":"FIR","upper":"Infinity","lower":0,"name":"Mogadishu FIR/UIR"},{"designator":"HECC","type":"FIR","upper":"Infinity","lower":0,"name":"Cairo FIR"},{"designator":"HHAA","type":"FIR","upper":"Infinity","lower":0,"name":"Asmara FIR"},{"designator":"HKNA","type":"FIR","upper":"Infinity","lower":0,"name":"Nairobi FIR"},{"designator":"HLLL","type":"FIR","upper":"Infinity","lower":0,"name":"Tripoli FIR"},{"designator":"HRYR","type":"FIR","upper":245,"lower":0,"name":"Kigali FIR"},{"designator":"HRYR","type":"UIR","upper":"Infinity","lower":245,"name":"Kigali UIR"},{"designator":"HSSS","type":"FIR","upper":285,"lower":0,"name":"Khartoum FIR"},{"designator":"HSSS","type":"UIR","upper":"Infinity","lower":285,"name":"Khartoum UIR"},{"designator":"HTDC","type":"FIR","upper":"Infinity","lower":0,"name":"Dar-Es-Salaam FIR"},{"designator":"HUEC","type":"FIR","upper":"Infinity","lower":0,"name":"Entebbe FIR"},{"designator":"KZAB","type":"FIR","upper":180,"lower":0,"name":"Albuquerque FIR"},{"designator":"KZAB","type":"UIR","upper":"Infinity","lower":180,"name":"Albuquerque UIR"},{"designator":"KZAK","type":"FIR","upper":"Infinity","lower":0,"name":"Oakland Oceanic FIR"},{"designator":"KZAU","type":"FIR","upper":180,"lower":0,"name":"Chicago FIR"},{"designator":"KZAU","type":"UIR","upper":"Infinity","lower":180,"name":"Chicago UIR"},{"designator":"KZBW","type":"FIR","upper":180,"lower":0,"name":"Boston FIR"},{"designator":"KZBW","type":"UIR","upper":"Infinity","lower":180,"name":"Boston UIR"},{"designator":"KZDC","type":"FIR","upper":180,"lower":0,"name":"Washington FIR"},{"designator":"KZDC","type":"UIR","upper":"Infinity","lower":180,"name":"Washington UIR"},{"designator":"KZDV","type":"FIR","upper":180,"lower":0,"name":"Denver FIR"},{"designator":"KZDV","type":"UIR","upper":"Infinity","lower":180,"name":"Denver UIR"},{"designator":"KZFW","type":"FIR","upper":180,"lower":0,"name":"Fort Worth FIR"},{"designator":"KZFW","type":"UIR","upper":"Infinity","lower":180,"name":"Fort Worth UIR"},{"designator":"KZHU","type":"FIR","upper":"Infinity","lower":0,"name":"Houston FIR"},{"designator":"KZID","type":"FIR","upper":180,"lower":0,"name":"Indianapolis FIR"},{"designator":"KZID","type":"UIR","upper":"Infinity","lower":180,"name":"Indianapolis UIR"},{"designator":"KZJX","type":"FIR","upper":180,"lower":0,"name":"Jacksonville FIR"},{"designator":"KZJX","type":"UIR","upper":"Infinity","lower":180,"name":"Jacksonville UIR"},{"designator":"KZKC","type":"FIR","upper":180,"lower":0,"name":"Kansas City FIR"},{"designator":"KZKC","type":"UIR","upper":"Infinity","lower":180,"name":"Kansas City UIR"},{"designator":"KZLA","type":"FIR","upper":180,"lower":0,"name":"Los Angeles FIR"},{"designator":"KZLA","type":"UIR","upper":"Infinity","lower":180,"name":"Los Angeles UIR"},{"designator":"KZLC","type":"FIR","upper":180,"lower":0,"name":"Salt Lake City FIR"},{"designator":"KZLC","type":"UIR","upper":"Infinity","lower":180,"name":"Salt Lake City UIR"},{"designator":"KZMA","type":"FIR","upper":"Infinity","lower":0,"name":"Miami FIR/UIR"},{"designator":"KZME","type":"FIR","upper":180,"lower":0,"name":"Memphis FIR"},{"designator":"KZME","type":"UIR","upper":"Infinity","lower":180,"name":"Memphis UIR"},{"designator":"KZMP","type":"FIR","upper":180,"lower":0,"name":"Minneapolis FIR"},{"designator":"KZMP","type":"UIR","upper":"Infinity","lower":180,"name":"Minneapolis UIR"},{"designator":"KZNY","type":"FIR","upper":180,"lower":0,"name":"New York FIR"},{"designator":"KZNY","type":"UIR","upper":"Infinity","lower":180,"name":"New York UIR"},{"designator":"KZOA","type":"FIR","upper":"Infinity","lower":0,"name":"Oakland FIR"},{"designator":"KZOB","type":"FIR","upper":180,"lower":0,"name":"Cleveland FIR"},{"designator":"KZOB","type":"UIR","upper":"Infinity","lower":180,"name":"Cleveland UIR"},{"designator":"KZSE","type":"FIR","upper":180,"lower":0,"name":"Seattle FIR"},{"designator":"KZSE","type":"UIR","upper":"Infinity","lower":180,"name":"Seattle UIR"},{"designator":"KZTL","type":"FIR","upper":180,"lower":0,"name":"Atlanta FIR"},{"designator":"KZTL","type":"UIR","upper":"Infinity","lower":180,"name":"Atlanta UIR"},{"designator":"KZWY","type":"FIR","upper":"Infinity","lower":0,"name":"New York Oceanic FIR"},{"designator":"LAAA","type":"FIR","upper":"Infinity","lower":0,"name":"Tirana FIR"},{"designator":"LBSR","type":"FIR","upper":"Infinity","lower":0,"name":"Sofia FIR"},{"designator":"LCCC","type":"FIR","upper":"Infinity","lower":0,"name":"Nicosia FIR"},{"designator":"LDZO","type":"FIR","upper":"Infinity","lower":0,"name":"Zagreb FIR"},{"designator":"LECB","type":"FIR","upper":195,"lower":0,"name":"Barcelona FIR"},{"designator":"LECB","type":"UIR","upper":"Infinity","lower":195,"name":"Barcelona UIR"},{"designator":"LECM","type":"FIR","upper":195,"lower":0,"name":"Madrid FIR"},{"designator":"LECM","type":"UIR","upper":"Infinity","lower":195,"name":"Madrid UIR"},{"designator":"LFBB","type":"FIR","upper":195,"lower":0,"name":"Bordeaux FIR"},{"designator":"LFEE","type":"FIR","upper":195,"lower":0,"name":"Reims FIR"},{"designator":"LFFF","type":"FIR","upper":195,"lower":0,"name":"Paris FIR"},{"designator":"LFFF","type":"UIR","upper":"Infinity","lower":195,"name":"France UIR"},{"designator":"LFMM","type":"FIR","upper":195,"lower":0,"name":"Marseille FIR"},{"designator":"LFRR","type":"FIR","upper":195,"lower":0,"name":"Brest FIR"},{"designator":"LGGG","type":"FIR","upper":245,"lower":0,"name":"Athinai FIR"},{"designator":"LGGG","type":"UIR","upper":"Infinity","lower":245,"name":"Athinai UIR"},{"designator":"LHCC","type":"FIR","upper":"Infinity","lower":0,"name":"Budapest FIR"},{"designator":"LIBB","type":"FIR","upper":195,"lower":0,"name":"Brindisi FIR"},{"designator":"LIBB","type":"UIR","upper":"Infinity","lower":195,"name":"Brindisi UIR"},{"designator":"LIMM","type":"FIR","upper":195,"lower":0,"name":"Milano FIR"},{"designator":"LIMM","type":"UIR","upper":"Infinity","lower":195,"name":"Milano UIR"},{"designator":"LIRR","type":"FIR","upper":195,"lower":0,"name":"Roma FIR"},{"designator":"LIRR","type":"UIR","upper":"Infinity","lower":195,"name":"Roma UIR"},{"designator":"LJLA","type":"FIR","upper":"Infinity","lower":0,"name":"Ljubljana FIR"},{"designator":"LKAA","type":"FIR","upper":"Infinity","lower":0,"name":"Praha FIR"},{"designator":"LLLL","type":"FIR","upper":"Infinity","lower":0,"name":"Tel-Aviv FIR"},{"designator":"LMMM","type":"FIR","upper":195,"lower":0,"name":"Malta FIR"},{"designator":"LMMM","type":"UIR","upper":"Infinity","lower":195,"name":"Malta UIR"},{"designator":"LOVV","type":"FIR","upper":"Infinity","lower":0,"name":"Wien FIR"},{"designator":"LPPC","type":"FIR","upper":"Infinity","lower":0,"name":"Lisboa FIR"},{"designator":"LPPO","type":"FIR","upper":"Infinity","lower":0,"name":"Santa Maria FIR"},{"designator":"LQSB","type":"FIR","upper":245,"lower":0,"name":"Sarajevo FIR"},{"designator":"LQSB","type":"UIR","upper":"Infinity","lower":245,"name":"Sarajevo UIR"},{"designator":"LRBB","type":"FIR","upper":"Infinity","lower":0,"name":"Bucarest FIR"},{"designator":"LSAS","type":"FIR","upper":195,"lower":0,"name":"Switzerland FIR"},{"designator":"LSAS","type":"UIR","upper":"Infinity","lower":195,"name":"Switzerland UIR"},{"designator":"LTAA","type":"FIR","upper":"Infinity","lower":0,"name":"Ankara FIR"},{"designator":"LTBB","type":"FIR","upper":"Infinity","lower":0,"name":"Istanbul FIR"},{"designator":"LUUU","type":"FIR","upper":"Infinity","lower":0,"name":"Chisinau FIR"},{"designator":"LWSS","type":"FIR","upper":"Infinity","lower":0,"name":"Skopje FIR"},{"designator":"LYBA","type":"FIR","upper":285,"lower":0,"name":"Beograd FIR"},{"designator":"LYBA","type":"UIR","upper":"Infinity","lower":285,"name":"Beograd UIR"},{"designator":"LZBB","type":"FIR","upper":"Infinity","lower":0,"name":"Bratislava  FIR"},{"designator":"MDCS","type":"FIR","upper":195,"lower":0,"name":"Santo Domingo FIR"},{"designator":"MDCS","type":"UIR","upper":"Infinity","lower":195,"name":"Santo Domingo UIR"},{"designator":"MHCC","type":"FIR","upper":195,"lower":0,"name":"Central America FIR"},{"designator":"MHCC","type":"UIR","upper":"Infinity","lower":195,"name":"Central America UIR"},{"designator":"MKJK","type":"FIR","upper":245,"lower":0,"name":"Kingston FIR"},{"designator":"MKJK","type":"UIR","upper":"Infinity","lower":245,"name":"Kingston UIR"},{"designator":"MMFO","type":"FIR","upper":"Infinity","lower":0,"name":"Oceanica Mazatlan FIR"},{"designator":"MMFR","type":"FIR","upper":"Infinity","lower":0,"name":"Mexico FIR"},{"designator":"MPZL","type":"FIR","upper":"Infinity","lower":0,"name":"Panama FIR"},{"designator":"MTEG","type":"FIR","upper":"Infinity","lower":0,"name":"Port-Au-Prince FIR"},{"designator":"MUFH","type":"FIR","upper":"Infinity","lower":0,"name":"Habana FIR/UIR"},{"designator":"NFFF","type":"FIR","upper":"Infinity","lower":0,"name":"Nadi FIR"},{"designator":"NTTT","type":"FIR","upper":"Infinity","lower":0,"name":"Tahiti Oceanic FIR"},{"designator":"NZZC","type":"FIR","upper":"Infinity","lower":0,"name":"New Zealand FIR"},{"designator":"NZZO","type":"FIR","upper":"Infinity","lower":0,"name":"Auckland Oceanic FIR"},{"designator":"OAKX","type":"FIR","upper":"Infinity","lower":0,"name":"Kabul FIR"},{"designator":"OBBB","type":"FIR","upper":150,"lower":0,"name":"Bahrain FIR"},{"designator":"OBBB","type":"UIR","upper":"Infinity","lower":150,"name":"Bahrain UIR"},{"designator":"OEJD","type":"FIR","upper":"Infinity","lower":0,"name":"Jeddah FIR"},{"designator":"OIIX","type":"FIR","upper":"Infinity","lower":0,"name":"Tehran FIR"},{"designator":"OJAC","type":"FIR","upper":"Infinity","lower":0,"name":"Amman FIR"},{"designator":"OKAC","type":"FIR","upper":"Infinity","lower":0,"name":"Kuwait FIR"},{"designator":"OLBB","type":"FIR","upper":195,"lower":0,"name":"Beirut FIR"},{"designator":"OLBB","type":"UIR","upper":"Infinity","lower":195,"name":"Beirut UIR"},{"designator":"OMAE","type":"FIR","upper":145,"lower":0,"name":"Emirates FIR"},{"designator":"OMAE","type":"UIR","upper":"Infinity","lower":145,"name":"Emirates UIR"},{"designator":"OOMM","type":"FIR","upper":"Infinity","lower":0,"name":"Muscat FIR"},{"designator":"OPKR","type":"FIR","upper":"Infinity","lower":0,"name":"Karachi FIR"},{"designator":"OPLR","type":"FIR","upper":"Infinity","lower":0,"name":"Lahore FIR"},{"designator":"ORBB","type":"FIR","upper":"Infinity","lower":0,"name":"Baghdad FIR"},{"designator":"OSTT","type":"FIR","upper":"Infinity","lower":0,"name":"Damascus FIR"},{"designator":"OYSC","type":"FIR","upper":"Infinity","lower":0,"name":"Sanaa FIR"},{"designator":"PAZA","type":"FIR","upper":"Infinity","lower":0,"name":"Alaska FIR"},{"designator":"RCAA","type":"FIR","upper":"Infinity","lower":0,"name":"Taipei FIR"},{"designator":"RJJJ","type":"FIR","upper":"Infinity","lower":0,"name":"Fukuoka FIR"},{"designator":"RKRR","type":"FIR","upper":"Infinity","lower":0,"name":"Incheon FIR"},{"designator":"RPHI","type":"FIR","upper":"Infinity","lower":0,"name":"Manila FIR"},{"designator":"SACF","type":"FIR","upper":"Infinity","lower":0,"name":"Cordoba FIR"},{"designator":"SAEF","type":"FIR","upper":"Infinity","lower":0,"name":"Ezeiza FIR"},{"designator":"SAMF","type":"FIR","upper":"Infinity","lower":0,"name":"Mendoza FIR"},{"designator":"SARR","type":"FIR","upper":"Infinity","lower":0,"name":"Resistencia FIR"},{"designator":"SAVF","type":"FIR","upper":"Infinity","lower":0,"name":"Comodoro Rivadavia FIR"},{"designator":"SBAO","type":"FIR","upper":"Infinity","lower":0,"name":"Atlantico FIR"},{"designator":"SBAZ","type":"FIR","upper":"Infinity","lower":0,"name":"Amazonica FIR"},{"designator":"SBBS","type":"FIR","upper":"Infinity","lower":0,"name":"Brasilia FIR"},{"designator":"SBCW","type":"FIR","upper":"Infinity","lower":0,"name":"Curitiba FIR"},{"designator":"SBRE","type":"FIR","upper":"Infinity","lower":0,"name":"Recife FIR"},{"designator":"SCCZ","type":"FIR","upper":"Infinity","lower":0,"name":"Punta Arenas FIR"},{"designator":"SCEZ","type":"FIR","upper":"Infinity","lower":0,"name":"Santiago FIR"},{"designator":"SCFZ","type":"FIR","upper":"Infinity","lower":0,"name":"Antofagasta FIR"},{"designator":"SCIZ","type":"FIR","upper":"Infinity","lower":0,"name":"Isla De Pascua FIR"},{"designator":"SCTZ","type":"FIR","upper":"Infinity","lower":0,"name":"Puerto Montt FIR"},{"designator":"SEFG","type":"FIR","upper":"Infinity","lower":0,"name":"Guayaquil FIR/UIR"},{"designator":"SGFA","type":"FIR","upper":"Infinity","lower":0,"name":"Asuncion FIR/UIR"},{"designator":"SKEC","type":"FIR","upper":"Infinity","lower":0,"name":"Barranquilla FIR"},{"designator":"SKED","type":"FIR","upper":"Infinity","lower":0,"name":"Bogota FIR"},{"designator":"SLLF","type":"FIR","upper":"Infinity","lower":0,"name":"La Paz FIR"},{"designator":"SMPM","type":"FIR","upper":"Infinity","lower":0,"name":"Paramaribo FIR"},{"designator":"SOOO","type":"FIR","upper":245,"lower":0,"name":"Cayenne FIR"},{"designator":"SOOO","type":"UIR","upper":"Infinity","lower":245,"name":"Cayenne UIR"},{"designator":"SPIM","type":"FIR","upper":"Infinity","lower":0,"name":"Lima FIR"},{"designator":"SUEO","type":"FIR","upper":"Infinity","lower":0,"name":"Montevideo FIR"},{"designator":"SVZM","type":"FIR","upper":"Infinity","lower":0,"name":"Maiquetia FIR"},{"designator":"SYGC","type":"FIR","upper":"Infinity","lower":0,"name":"Georgetown FIR"},{"designator":"TJZS","type":"FIR","upper":"Infinity","lower":0,"name":"San Juan Oceanic FIR/UIR"},{"designator":"TNCF","type":"FIR","upper":195,"lower":0,"name":"Curacao FIR"},{"designator":"TNCF","type":"UIR","upper":"Infinity","lower":195,"name":"Curacao UIR"},{"designator":"TTZP","type":"FIR","upper":245,"lower":0,"name":"Piarco FIR"},{"designator":"TTZP","type":"UIR","upper":"Infinity","lower":245,"name":"Piarco UIR"},{"designator":"UAAA","type":"FIR","upper":"Infinity","lower":0,"name":"Almaty FIR"},{"designator":"UACN","type":"FIR","upper":"Infinity","lower":0,"name":"Nur-Sultan FIR"},{"designator":"UAII","type":"FIR","upper":"Infinity","lower":0,"name":"Shymkent FIR"},{"designator":"UATT","type":"FIR","upper":"Infinity","lower":0,"name":"Aktobe FIR"},{"designator":"UBBA","type":"FIR","upper":"Infinity","lower":0,"name":"Baku FIR"},{"designator":"UCFM","type":"FIR","upper":"Infinity","lower":0,"name":"Bishkek FIR"},{"designator":"UCFO","type":"FIR","upper":"Infinity","lower":0,"name":"Osh FIR"},{"designator":"UDDD","type":"FIR","upper":"Infinity","lower":0,"name":"Yerevan FIR"},{"designator":"UEEE","type":"FIR","upper":"Infinity","lower":0,"name":"Yakutsk FIR"},{"designator":"UGGG","type":"FIR","upper":195,"lower":0,"name":"Tibilisi FIR"},{"designator":"UGGG","type":"UIR","upper":"Infinity","lower":195,"name":"Tibilisi UIR"},{"designator":"UHHH","type":"FIR","upper":"Infinity","lower":0,"name":"Khabarovsk FIR"},{"designator":"UHMM","type":"FIR","upper":"Infinity","lower":0,"name":"Magadan FIR"},{"designator":"UHPP","type":"FIR","upper":"Infinity","lower":0,"name":"Petropavlovsk-Kamchatsky FIR"},{"designator":"UIII","type":"FIR","upper":"Infinity","lower":0,"name":"Irkutsk FIR"},{"designator":"UKBV","type":"FIR","upper":275,"lower":0,"name":"Kiev FIR"},{"designator":"UKBV","type":"UIR","upper":"Infinity","lower":275,"name":"Kiev UIR"},{"designator":"UKDV","type":"FIR","upper":275,"lower":0,"name":"Dnipro FIR"},{"designator":"UKFV","type":"FIR","upper":275,"lower":0,"name":"Simferopol FIR"},{"designator":"UKLV","type":"FIR","upper":275,"lower":0,"name":"Lvov FIR"},{"designator":"UKOV","type":"FIR","upper":275,"lower":0,"name":"Odessa FIR"},{"designator":"ULAA","type":"FIR","upper":"Infinity","lower":0,"name":"Arkhangelsk FIR"},{"designator":"ULKK","type":"FIR","upper":"Infinity","lower":0,"name":"Kotlas FIR"},{"designator":"ULLL","type":"FIR","upper":"Infinity","lower":0,"name":"Sankt-Peterburg FIR"},{"designator":"ULMM","type":"FIR","upper":"Infinity","lower":0,"name":"Murmansk FIR"},{"designator":"ULWW","type":"FIR","upper":"Infinity","lower":0,"name":"Vologda FIR"},{"designator":"UMKK","type":"FIR","upper":"Infinity","lower":0,"name":"Kaliningrad FIR"},{"designator":"UMMV","type":"FIR","upper":"Infinity","lower":0,"name":"Minsk FIR"},{"designator":"UNKL","type":"FIR","upper":"Infinity","lower":0,"name":"Krasnoyarsk FIR"},{"designator":"UNNT","type":"FIR","upper":"Infinity","lower":0,"name":"Novosibirsk FIR"},{"designator":"URRV","type":"FIR","upper":"Infinity","lower":0,"name":"Rostov-Na-Donu FIR"},{"designator":"USSV","type":"FIR","upper":"Infinity","lower":0,"name":"Yekaterinburg FIR"},{"designator":"USTV","type":"FIR","upper":"Infinity","lower":0,"name":"Tyumen FIR"},{"designator":"UTAA","type":"FIR","upper":"Infinity","lower":0,"name":"Ashgabat FIR"},{"designator":"UTAK","type":"FIR","upper":"Infinity","lower":0,"name":"Turkmenbashi FIR"},{"designator":"UTAT","type":"FIR","upper":"Infinity","lower":0,"name":"Dashoguz FIR"},{"designator":"UTAV","type":"FIR","upper":"Infinity","lower":0,"name":"Turkmenabat FIR"},{"designator":"UTDD","type":"FIR","upper":"Infinity","lower":0,"name":"Dushanbe FIR"},{"designator":"UTSD","type":"FIR","upper":"Infinity","lower":0,"name":"Samarkand FIR"},{"designator":"UTTR","type":"FIR","upper":"Infinity","lower":0,"name":"Tashkent FIR"},{"designator":"UUWV","type":"FIR","upper":"Infinity","lower":0,"name":"Moscow FIR"},{"designator":"UUYY","type":"FIR","upper":"Infinity","lower":0,"name":"Syktyvkar FIR"},{"designator":"UWWW","type":"FIR","upper":"Infinity","lower":0,"name":"Samara FIR"},{"designator":"VABF","type":"FIR","upper":"Infinity","lower":0,"name":"Mumbai FIR"},{"designator":"VCCF","type":"FIR","upper":"Infinity","lower":0,"name":"Colombo FIR"},{"designator":"VDPF","type":"FIR","upper":"Infinity","lower":0,"name":"Phnom Penh FIR"},{"designator":"VECF","type":"FIR","upper":"Infinity","lower":0,"name":"Kolkata FIR"},{"designator":"VGFR","type":"FIR","upper":"Infinity","lower":0,"name":"Dhaka FIR"},{"designator":"VHHK","type":"FIR","upper":"Infinity","lower":0,"name":"Hong Kong FIR"},{"designator":"VIDF","type":"FIR","upper":"Infinity","lower":0,"name":"Delhi FIR"},{"designator":"VLVT","type":"FIR","upper":"Infinity","lower":0,"name":"Vientiane FIR"},{"designator":"VNSM","type":"FIR","upper":"Infinity","lower":0,"name":"Kathmandu FIR"},{"designator":"VOMF","type":"FIR","upper":"Infinity","lower":0,"name":"Chennai FIR"},{"designator":"VRMF","type":"FIR","upper":"Infinity","lower":0,"name":"Male FIR"},{"designator":"VTBB","type":"FIR","upper":"Infinity","lower":0,"name":"Bangkok FIR"},{"designator":"VVTS","type":"FIR","upper":"Infinity","lower":0,"name":"Ho Chi Minh FIR"},{"designator":"VVVV","type":"FIR","upper":"Infinity","lower":0,"name":"Hanoi FIR"},{"designator":"VYYF","type":"FIR","upper":"Infinity","lower":0,"name":"Yangon FIR"},{"designator":"WAAF","type":"FIR","upper":"Infinity","lower":0,"name":"U-Jung Pandang FIR"},{"designator":"WBFC","type":"FIR","upper":"Infinity","lower":0,"name":"Kota Kinabalu FIR"},{"designator":"WIIF","type":"FIR","upper":"Infinity","lower":0,"name":"Jakarta FIR"},{"designator":"WMFC","type":"FIR","upper":"Infinity","lower":0,"name":"Kuala Lumpur FIR"},{"designator":"WSJC","type":"FIR","upper":"Infinity","lower":0,"name":"Singapore FIR"},{"designator":"YBBB","type":"FIR","upper":"Infinity","lower":0,"name":"Brisbane FIR"},{"designator":"YMMM","type":"FIR","upper":"Infinity","lower":0,"name":"Melbourne FIR"},{"designator":"ZBPE","type":"FIR","upper":"Infinity","lower":0,"name":"Beijing FIR"},{"designator":"ZGZU","type":"FIR","upper":"Infinity","lower":0,"name":"Guangzhou FIR"},{"designator":"ZHWH","type":"FIR","upper":"Infinity","lower":0,"name":"Wuhan FIR"},{"designator":"ZJSA","type":"FIR","upper":"Infinity","lower":0,"name":"Sanya FIR"},{"designator":"ZKKP","type":"FIR","upper":"Infinity","lower":0,"name":"Pyongyang FIR"},{"designator":"ZLHW","type":"FIR","upper":"Infinity","lower":0,"name":"Lanzhou FIR"},{"designator":"ZMUB","type":"FIR","upper":"Infinity","lower":0,"name":"Ulaanbaatar FIR"},{"designator":"ZPKM","type":"FIR","upper":"Infinity","lower":0,"name":"Kunming FIR"},{"designator":"ZSHA","type":"FIR","upper":"Infinity","lower":0,"name":"Shanghai FIR"},{"designator":"ZWUQ","type":"FIR","upper":"Infinity","lower":0,"name":"Urumqi FIR"},{"designator":"ZYSH","type":"FIR","upper":"Infinity","lower":0,"name":"Shenyang FIR"}];
+
+// SORGULAMA FONKSİYONU
+function searchICAO() {
+    // Input ve Display elementlerini al
+    const inputElement = document.getElementById('icao-input');
+    const displayElement = document.getElementById('search-results');
+    
+    // Güvenlik kontrolü (Elementler yoksa fonksiyonu durdur)
+    if (!inputElement || !displayElement) return;
+
+    const input = inputElement.value.toUpperCase().trim();
+    
+    // Kullanıcı bir şey yazmadıysa temizle
+    if (input === "") {
+        displayElement.innerHTML = '<div class="placeholder-text">[ STANDBY: SYSTEM_READY ]</div>';
+        return;
+    }
+
+    // Veride filtreleme yap
+    const results = FIR_DATA.filter(item => item.designator === input);
+
+    if (results.length > 0) {
+        displayElement.innerHTML = results.map(data => {
+            const isUIR = data.type === 'UIR';
+            const themeColor = isUIR ? '#ef4444' : '#38bdf8'; // UIR için kırmızı, FIR için mavi
+            
+            return `
+                <div class="info-card" style="margin-bottom: 12px; border-left: 4px solid ${themeColor}; background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 0 4px 4px 0;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span style="color:${themeColor}; font-weight:bold; font-size:1.4em; font-family:monospace; letter-spacing:1px;">${data.designator}</span>
+                        <span style="background:${themeColor}; color:#000; padding:2px 8px; font-size:11px; font-weight:bold; border-radius:2px; text-transform:uppercase;">
+                            ${data.type}
+                        </span>
+                    </div>
+                    
+                    <div style="margin-bottom:8px;">
+                        <div style="color:${themeColor}; font-size:9px; text-transform:uppercase; opacity:0.8; letter-spacing:1px;">Region Identification</div>
+                        <div style="color:#fff; font-size:14px; font-weight:500;">${data.name}</div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px; margin-top:8px;">
+                        <div>
+                            <div style="color:${themeColor}; font-size:9px; opacity:0.8;">LOWER_LIMIT</div>
+                            <div style="color:#cbd5e1; font-family:monospace; font-size:12px;">FL ${data.lower}</div>
+                        </div>
+                        <div>
+                            <div style="color:${themeColor}; font-size:9px; opacity:0.8;">UPPER_LIMIT</div>
+                            <div style="color:#cbd5e1; font-family:monospace; font-size:12px;">${data.upper === 'Infinity' ? 'UNLIMITED' : 'FL ' + data.upper}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } else {
+        // Sonuç bulunamadığında hata mesajı
+        displayElement.innerHTML = `
+            <div style="color:#ef4444; text-align:center; padding:25px; border:1px dashed rgba(239, 68, 68, 0.4); border-radius:4px; background: rgba(239, 68, 68, 0.05);">
+                <div style="font-family:monospace; font-weight:bold; margin-bottom:5px;">[ IDENT_NOT_FOUND ]</div>
+                <div style="font-size:11px; opacity:0.8;">Identifier "${input}" is not in database.</div>
+            </div>
+        `;
+    }
+}
+
+// Enter tuşu desteği için event listener
+document.addEventListener('DOMContentLoaded', () => {
+    const inputField = document.getElementById('icao-input');
+    if (inputField) {
+        inputField.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchICAO();
+            }
+        });
+    }
+});
+
+// Çekmeceyi açıp kapatan fonksiyon (Eğer önceki koddaki gibi duruyorsa)
+function toggleFirDrawer() {
+    const drawer = document.getElementById('fir-drawer');
+    if (drawer) {
+        drawer.classList.toggle('open');
+    }
+}
+
+
+
+</script>
+
+
+</body>
+</html>
