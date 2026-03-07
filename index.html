@@ -292,17 +292,18 @@
 /* Yan tutamaç (Mavi buton) (Aynı kalıyor) */
 .fir-handle {
     position: absolute;
-    right: -50px;
-    top: 40px; /* Tutamacın çekmece içindeki konumu */
-    background: #38bdf8;
-    color: #0f172a;
+    right: -55px;
+    top: 0px; /* Tutamacın çekmece içindeki konumu */
+    background: #7d1549;
+    color: #e8cad9;
     width: 35px;
-    height: 100px;
+    height: 140px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     writing-mode: vertical-rl;
+font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 2px;
@@ -368,7 +369,7 @@
 /* Çekmece Konumu ve Animasyonu */
 .drawer-wrapper {
     position: fixed;
-    top: 265px;
+    top: 260px;
     left: -452px; /* Paneli gizler */
     display: flex;
     align-items: flex-start;
@@ -384,14 +385,15 @@
 /* Mavi Açma Kulakçığı */
 .drawer-handle {
     width: 35px;
-    height: 120px;
-    background: #ff0000;
-    color: #000;
+    height: 140px;
+    background: #1b47b5;
+    color: #d1d7e6;
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
     writing-mode: vertical-rl;
+font-family: 'JetBrains Mono', monospace;
     font-weight: 900;
     font-size: 11px;
     letter-spacing: 2px;
@@ -449,7 +451,7 @@
 #quake-monitor {
     position: fixed;
     /* Alt haber bandın 48px + bir parmak boşluk (yaklaşık 17px) = 65px */
-    bottom: 65px; 
+    bottom: 45px; 
     left: 50%;
     transform: translateX(-50%);
     z-index: 9998;
@@ -502,8 +504,339 @@
 
 .mag-bold {
     color: #
+}
 
-    </style>
+
+/* --- WARZONE SOL ÇEKMECE (LIVE NEWS ALTI) --- */
+#warzone-drawer {
+    position: fixed !important;
+    top: 216px !important; /* Live News'un altına hizalamak için */
+    left: -380px !important; /* Başlangıçta gizli */
+    width: 374px !important;
+    height: 500px !important;
+    background: rgba(10, 10, 10, 0.98) !important;
+    border: 1px solid rgba(241, 196, 15, 0.5) !important;
+    border-radius: 0 20px 20px 0 !important;
+    z-index: 2147483647 !important; /* En üst katman */
+    transition: left 0.5s cubic-bezier(0.19, 1, 0.22, 1) !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Aktif Olduğunda Sola Yapış */
+#warzone-drawer.wz-open {
+    left: 0 !important;
+}
+
+/* Tutamaç (Handle) */
+#warzone-handle {
+    position: absolute !important;
+    right: -40px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 40px !important;
+    height: 140px !important;
+    background: #ba9114 !important;
+    color: #ebe1c3!important;
+    cursor: pointer !important;
+    border-radius: 0 12px 12px 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    writing-mode: vertical-rl !important;
+font-family: 'JetBrains Mono', monospace;
+    font-size: 11px !important;
+    font-weight: 900 !important;
+    letter-spacing: 2px !important;
+}
+
+.wz-header-bar { padding: 12px; background: #1a1a1a; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; color: #f1c40f; font-size: 10px; font-weight: bold; }
+.wz-dot { width: 8px; height: 8px; background: #ff00ff; border-radius: 50%; box-shadow: 0 0 10px #ff00ff; }
+#warzone-drawer iframe { flex: 1; border: none; background: #000; }
+
+
+/* --- HORIZONTAL BOTTOM TAB & DRAWER --- */
+/* --- HORIZONTAL BOTTOM-UP OSINT DRAWER --- */
+:root {
+    --intel-purple:#2596be;
+    --intel-bg: #050508;
+}
+
+/* Sol alttaki yatay buton */
+.side-tabs-container {
+    position: fixed;
+    left: 0px;
+    bottom: 51px; /* Haber bandının yüksekliğine göre ayarla */
+    z-index: 100001;
+}
+
+.side-tab-btn {
+    writing-mode: horizontal-tb;
+    padding: 10px 25px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: bold;
+    background-color: #990951; /* Sarı Tonu */
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px 8px 0 0; /* Üst köşeler yuvarlak */
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.side-tab-btn:hover {
+    padding-bottom: 15px;
+    background-color: #ffd700;
+}
+
+/* AŞAĞIDAN YUKARI AÇILAN ÇEKMECE */
+#intel-drawer {
+    position: fixed;
+    left: 0;
+    bottom: -100%; /* Ekranın altında gizli */
+    width: 100%;
+    height: 100%;
+    background: var(--intel-bg);
+    z-index: 100000;
+    transition: bottom 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+#intel-drawer.active {
+    bottom: 0;
+}
+
+.intel-split-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    flex: 1;
+    background: #000;
+    gap: 3px;
+    margin-top: 0px; /* Üstten bir kutucuk boşluk */
+    height: calc(100% - 40px);
+}
+
+.intel-module { position: relative; overflow: hidden; }
+
+/* CONFLICT_TRACK Etiketi */
+.conflict-label {
+    position: absolute;
+    top: 5px;
+    left: 10px;
+    z-index: 110;
+    background: var(--intel-purple);
+    color: white;
+    font-size: 10px;
+    padding: 2px 8px;
+    font-family: 'JetBrains Mono';
+    font-weight: bold;
+    pointer-events: none;
+}
+
+
+
+/* totalnews */
+
+:root { 
+    --bg-navy: #0a1120; 
+    --u-purple: #8a2be2; 
+    --u-gold: #F38282; 
+    --panel-deep: #0a1120; 
+    --border-soft: rgba(138, 43, 226, 0.4);
+}
+
+/* TETİKLEYİCİ KUTUCUK */
+#intel-toggle {
+    position: fixed;
+    left: 0px;
+    bottom: 85px; 
+    width: 42px;
+    height: 42px;
+    background: var(--u-purple);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 100002;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 20px rgba(138, 43, 226, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#intel-toggle:hover { background: #9d4edd; transform: translateY(-2px); }
+
+/* ANA PANEL */
+#intel-panel {
+    position: fixed;
+    left: 50px;
+    bottom: 50px;
+    width: 380px; 
+    max-height: 0;
+    background: var(--panel-deep);
+    border: 0px solid var(--u-purple);
+    border-radius: 4px;
+    z-index: 100001;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+#intel-panel.active { max-height: 500px; border-bottom: 3px solid var(--u-purple); }
+
+.panel-header {
+    background: #161625;
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--u-purple);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    letter-spacing: 1px;
+}
+
+.header-tag { color: var(--u-purple); font-weight: bold; }
+#sync-status { color: var(--u-gold); }
+
+/* HABER BLOKLARI */
+.feed-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--u-purple) transparent;
+}
+
+.news-block {
+    background: rgba(255,255,255,0.02);
+    border-left: 2px solid var(--u-purple);
+    padding: 10px;
+    margin-bottom: 12px;
+    transition: 0.2s;
+}
+
+.news-block:hover { background: rgba(138, 43, 226, 0.05); }
+
+.n-title {
+    color: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    text-decoration: none;
+    display: block;
+    line-height: 1.4;
+    margin-bottom: 6px;
+}
+
+.n-meta {
+    color: #64748b;
+    font-size: 9px;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* ÇEVİRİ SİSTEMİ */
+.trans-btn {
+    margin-top: 8px;
+    background: none;
+    border: 1px solid rgba(138, 43, 226, 0.5);
+    color: var(--u-purple);
+    font-family: 'JetBrains Mono';
+    font-size: 8px;
+    padding: 2px 6px;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.trans-result {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(241, 196, 15, 0.3);
+    color: var(--u-gold);
+    font-size: 10px;
+    display: none;
+    font-style: italic;
+}
+
+.loading-text { text-align: center; color: var(--u-purple); padding: 20px; font-size: 10px; animation: blink 1.5s infinite; }
+@keyframes blink { 50% { opacity: 0.3; } }
+
+}
+
+
+/*GIYBET*/
+
+:root { 
+    --u-purple: #8a2be2; 
+    --u-gold: #f1c40f; 
+    --bg-dark: #161625; 
+    --u-alert: #ff4500; 
+}
+
+#chat-sidebar {
+    position: fixed;
+    right: -301px;
+    top: 110px;
+    width: 300px;
+    height: 450px;
+    background: var(--bg-dark);
+    border: 1px solid var(--u-purple);
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    transition: right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+#chat-toggle {
+    position: absolute;
+    left: -45px;
+    top: 0;
+    width: 45px;
+    height: 120px;
+    background: var(--u-purple);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 8px 0 0 8px;
+    font-size: 14px;
+    font-weight: bold;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+}
+
+@keyframes alert-pulse {
+    0% { background-color: var(--u-purple); box-shadow: 0 0 0px var(--u-purple); }
+    50% { background-color: var(--u-alert); box-shadow: 0 0 15px var(--u-alert); }
+    100% { background-color: var(--u-purple); box-shadow: 0 0 0px var(--u-purple); }
+}
+
+.new-message-alert { animation: alert-pulse 1s infinite !important; }
+#chat-sidebar.active { right: 0; }
+
+.chat-header { padding: 8px; font-size: 10px; background: rgba(138, 43, 226, 0.2); border-bottom: 1px solid var(--u-purple); color: var(--u-gold); }
+#chat-output { flex: 1; overflow-y: auto; padding: 10px; font-size: 11px; color: #fff; background: rgba(0,0,0,0.2); scrollbar-width: none; }
+.msg { margin-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.02); padding-bottom: 3px; }
+.msg-u { color: var(--u-gold); font-weight: bold; }
+.chat-input-area { display: flex; padding: 10px; background: #000; border-radius: 0 0 0 8px; }
+#chat-in { flex: 1; background: transparent; border: 1px solid var(--u-purple); color: #fff; font-family: inherit; font-size: 10px; padding: 5px; outline: none; }
+#chat-btn { background: var(--u-purple); border: none; color: #fff; padding: 0 10px; cursor: pointer; font-size: 10px; }
+
+
+ </style>
 </head>
 <body>
 
@@ -535,14 +868,14 @@
 <div id="reddit-terminal">
     <div id="terminal-toggle" onclick="toggleTerminal()">
         <i class="fas fa-chevron-left" id="toggle-icon"></i> 
-        OSINT_INTELLIGENCE_FEED
+        REDDİT_FEED
     </div>
     <div style="background: #161b22; padding: 12px 16px; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center;">
         <span style="font-size: 10px; font-weight: 800; color: var(--reddit-orange); font-family: monospace;">SIGNAL_STRENGTH: NOMINAL</span>
         <button onclick="fetchRedditIntel()" style="background: transparent; border: 1px solid #30363d; color: #8b949e; font-size: 8px; padding: 2px 8px; cursor: pointer;">RE-SYNC</button>
     </div>
     <div id="reddit-stream" style="flex-grow: 1; overflow-y: scroll; background: #010409;">
-        <div style="padding: 40px; text-align: center; color: #484f58; font-family: monospace; font-size: 11px;">DECODING_ENCRYPTED_CHANNELS...</div>
+        <div style="padding: 40px; text-align: center; color: #484f58; font-family: monospace; font-size: 11px;">BAKINIYYEEH...</div>
     </div>
 </div>
 
@@ -576,7 +909,7 @@
 
     <div class="density-meter">
         <div id="density-status" style="width: 100%; color: #f8fafc;">
-            <span style="font-size: 8px;">INITIALIZING RADAR...</span>
+            <span style="font-size: 8px;">AZ KALIIYYYEH...</span>
         </div>
         <div class="meter-bar">
             <div id="density-fill" style="width: 0%; transition: width 2s ease;"></div>
@@ -598,7 +931,7 @@
     </div>
     
     <div id="crash-stream" style="flex-grow: 1; overflow-y: auto; padding: 10px; scrollbar-width: none; -ms-overflow-style: none;">
-        <div class="blink" style="color: #ef4444; font-size: 10px; padding: 20px;">> SCANNING SATELLITE DATA FOR INCIDENTS...</div>
+        <div class="blink" style="color: #ef4444; font-size: 10px; padding: 20px;">> ARAŞTIRIYYEH...</div>
     </div>
 </div>
 
@@ -625,7 +958,7 @@
 
 <div id="newsDrawer" class="drawer-wrapper">
     <div class="news-container">
-        <div class="monitor-label">🔴 NEWS TERMINAL</div>
+        <div class=""monitor-label montserrat-font"" style="color: white;">haber_mi_izleysuuun</div>
         
         <div class="news-tabs">
             <button class="n-tab active" onclick="yutupDegistir(this, 'pqq5c6k70kk')">NTV</button>
@@ -652,7 +985,7 @@
     </div>
 </div>
 
-<div id="quake-monitor" style="position: fixed; bottom: 65px; left: 50%; transform: translateX(-50%); z-index: 9999; width: 90%; max-width: 800px;">
+<div id="quake-monitor" style="position: fixed; bottom: 51px; left: 55%; transform: translateX(-50%); z-index: 9999; width: 90%; max-width: 1500px;">
     <div style="background: rgba(15, 23, 42, 0.9); border: 1px solid #f59e0b; border-left: 4px solid #ef4444; padding: 8px 15px; border-radius: 6px; display: flex; align-items: center; gap: 15px; backdrop-filter: blur(10px); box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
         <span style="color: #ef4444; font-weight: 800; font-size: 10px; letter-spacing: 1px; white-space: nowrap;">
             <i class="fas fa-house-damage"></i> EMSC SEISMIC (5.0+):
@@ -662,6 +995,74 @@
         </div>
     </div>
 </div>
+
+<div id="warzone-drawer">
+    <div id="warzone-handle" onclick="toggleWarzone()">
+        WAR FOOTAGE
+    </div>
+    <div class="wz-header-bar">
+        <span>thechronicles</span>
+        <div class="wz-dot"></div>
+    </div>
+    <iframe src="https://thechronicles.online/en/explore"></iframe>
+</div>
+
+<div class="side-tabs-container">
+    <button class="side-tab-btn" onclick="toggleIntel()">CONFLICT MAP</button>
+</div>
+
+<div id="intel-drawer">
+    <div style="padding: 10px 20px; background: #161625; border-bottom: 2px solid var(--intel-purple); display: flex; justify-content: space-between; align-items: center; height: 0px; box-sizing: border-box;">
+        <span style="color: var(--intel-purple); font-family: 'JetBrains Mono'; font-weight: bold; font-size: 12px;"></span>
+        <button onclick="toggleIntel()" style="background:none; border:1px solid #ff4444; color:#ff4444; cursor:pointer; padding:2px 10px; font-family:'JetBrains Mono'; border-radius:3px; font-size: 10px;">CLOSE_X</button>
+    </div>
+    
+    <div class="intel-split-grid">
+        <div class="intel-module" style="border-right: 1px solid #1a1a2e;">
+            <div class="conflict-label">CONFLICT_TRACK: SEVİŞMEYİP SAVAŞANLAR</div>
+            <iframe src="https://worldtensionwatch.com/" style="width: 100%; height: 100%; border: none; filter: brightness(0.9);"></iframe>
+        </div>
+
+        <div class="intel-module">
+            <div class="conflict-label">CONFLICT_TRACK: LIVE_WARS_MAP</div>
+            <iframe src="https://livewarsmap.com/" style="width: 100%; height: 100%; border: none; filter: brightness(0.9);"></iframe>
+        </div>
+    </div>
+</div>
+
+
+<div id="intel-toggle" onclick="togglenews()" title="Toggle Intel Stream">🛰️</div>
+
+<div id="intel-panel">
+    <div class="panel-header">
+        <span class="header-tag">GDELT_SYNC</span>
+        <span id="sync-status">INITIALIZING...</span>
+    </div>
+    <div id="news-feed" class="feed-container">
+        <div class="loading-text">DATA ARANNNIIYEEH...</div>
+    </div>
+</div>
+
+<div id="chat-sidebar">
+    <div id="chat-toggle" onclick="openChat()">NÖÖRÜYON!</div>
+    
+    <div class="chat-header">
+        <span>👽👽👽ONLAYNSIN BEBEYİM👽👽👽</span><br>
+        <span id="my-callsign">ID: SYNCING...</span>
+    </div>
+
+    <div id="chat-output">
+        <div style="color: #64748b;">>> STANDBY for P2P...</div>
+    </div>
+
+    <div class="chat-input-area">
+        <input type="text" id="chat-in" placeholder="Message...">
+        <button id="chat-btn" onclick="doSend()">ATTIR</button>
+    </div>
+</div>
+<script src="https://cdn.pubnub.com/sdk/javascript/pubnub.4.29.9.min.js"></script>
+
+
 
 <script>
 function launchNews(url) {
@@ -1080,6 +1481,7 @@ function yutupDegistir(buton, videoId) {
     iframe.src = "https://www.youtube.com/embed/" + videoId + "?autoplay=1&mute=1&playlist=" + videoId + "&loop=1";
 }
 
+
 // EMSC Deprem Verilerini Çekme (5.0+)
 async function fetchQuakes() {
     const quakeFlow = document.getElementById('quake-flow');
@@ -1120,6 +1522,215 @@ async function fetchQuakes() {
 // Başlat ve her 2 dakikada bir tazele
 fetchQuakes();
 setInterval(fetchQuakes, 120000);
+
+// Warzone Çekmece Kontrolü
+// Çekmeceyi hapisten kurtar ve çalıştır
+(function() {
+    function initWarzone() {
+        const wz = document.getElementById('warzone-drawer');
+        if (wz && document.body) {
+            // Çekmeceyi bulunduğu div'den söküp en dışa (Body) taşıyoruz
+            document.body.appendChild(wz);
+        }
+    }
+
+    // Sayfa açılır açılmaz kurtarma operasyonunu başlat
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initWarzone);
+    } else {
+        initWarzone();
+    }
+
+    // Aç/Kapat Fonksiyonu
+    window.toggleWarzone = function() {
+        const wz = document.getElementById('warzone-drawer');
+        if (wz) { wz.classList.toggle('wz-open'); }
+    };
+})();
+
+
+// conflict
+function toggleIntel() {
+    const drawer = document.getElementById('intel-drawer');
+    drawer.classList.toggle('active');
+}
+
+// ESC Tuşu ile Kapatma Desteği
+document.addEventListener('keydown', (e) => {
+    if (e.key === "Escape" && document.getElementById('intel-drawer').classList.contains('active')) {
+        toggleIntel();
+    }
+});
+
+
+// PANEL KONTROLÜ
+function togglenews() {
+    document.getElementById('intel-panel').classList.toggle('active');
+}
+
+// OTONOM ÇEVİRİ MOTORU
+async function translateItem(id, text) {
+    const box = document.getElementById(`res-${id}`);
+    const btn = document.getElementById(`btn-${id}`);
+    btn.innerText = "ÇEVRİLLLİYYEH...";
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(`https://lingva.ml/api/v1/auto/en/${encodeURIComponent(text)}`);
+        const data = await res.json();
+        box.style.display = "block";
+        box.innerHTML = `>> EL_ÇEVRİLMİŞ: ${data.translation}`;
+        btn.style.display = "none";
+    } catch (e) {
+        btn.innerText = "LINK_ERROR";
+        btn.disabled = false;
+    }
+}
+
+// GDELT VERİ ÇEKME (Havacılık & Çatışma Odaklı)
+async function fetchIntel() {
+    const feed = document.getElementById('news-feed');
+    const status = document.getElementById('sync-status');
+    const url = "https://api.gdeltproject.org/api/v2/doc/doc?query=(Aviation%20OR%20Military%20OR%20Conflict)&mode=artlist&format=json&maxresults=15&sort=datedesc";
+    
+    status.innerText = "SYNCING...";
+    
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+        feed.innerHTML = '';
+        
+        data.articles.forEach((art, i) => {
+            const cleanTitle = art.title.replace(/'/g, "\\'");
+            feed.innerHTML += `
+                <div class="news-block">
+                    <div class="n-meta">
+                        <span>${art.sourcecountry || 'INTL'}</span>
+                        <span>${art.seendate.substring(11,16)} Z</span>
+                    </div>
+                    <a href="${art.url}" target="_blank" class="n-title">${art.title}</a>
+                    <button id="btn-${i}" class="trans-btn" onclick="translateItem(${i}, '${cleanTitle}')">ÇEVİRGEÇ</button>
+                    <div id="res-${i}" class="trans-result"></div>
+                </div>`;
+        });
+        
+        const now = new Date();
+        status.innerText = `SYNCED_${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    } catch (e) {
+        status.innerText = "OFFLINE";
+        console.error("Intel_Sync_Error:", e);
+    }
+}
+
+// BAŞLATICI & OTOMATİK GÜNCELLEME (5 Dakikada bir)
+fetchIntel();
+setInterval(fetchIntel, 300000);
+
+//YOOĞAAMMINA
+const sidebar = document.getElementById('chat-sidebar');
+const toggleBtn = document.getElementById('chat-toggle');
+
+// 1. YEREL SES DOSYASI (Aynı klasörde olmalı)
+const xFilesLocal = new Audio('x-files-soft.mp3');
+
+// 2. PANELI AÇMA/KAPAMA
+function openChat() {
+    sidebar.classList.toggle('active');
+    toggleBtn.classList.remove('new-message-alert');
+}
+
+// 3. LAKAP OLUŞTURUCU
+function generateCallsign() {
+    const lakaplar = [
+        "DONSUZ DİSPEÇ", "AYYAŞ KAPTAN", "PURSER SEVDALISI FO", 
+        "MAZOTÇU TEKNİSYEN", "İSTİFA ETMİŞ KULECİ", "PİSTTEKİ TAVŞAN", 
+        "RÖTARLI YOLCU", "OVERBOOKED MEMUR", "KULEYLE KAVGALI", "YORGUN KABİN AMİRİ"
+    ];
+    return `${lakaplar[Math.floor(Math.random() * lakaplar.length)]}_${Math.floor(Math.random() * 999)}`;
+}
+
+let myNick = generateCallsign();
+document.getElementById('my-callsign').innerText = "CALLSIGN: " + myNick;
+
+// 4. PUBNUB AYARLARI
+const pubnub = new PubNub({
+    publishKey: 'demo',
+    subscribeKey: 'demo',
+    uuid: myNick
+});
+
+// 5. MESAJ DİNLEYİCİ (Sesli ve Görsel Alarm)
+pubnub.addListener({
+    message: function(m) {
+        // Çift gelmemesi için sadece buradan ekrana basıyoruz
+        renderMessage(m.message.user, m.message.text, false);
+        
+        // Eğer mesaj BAŞKASINDAN geliyorsa ve panel KAPALIYSA
+        if (m.message.user !== myNick && !sidebar.classList.contains('active')) {
+            toggleBtn.classList.add('new-message-alert');
+            
+            // X-FILES SESİNİ TETİKLE
+            xFilesLocal.currentTime = 0; // Başa sar
+            xFilesLocal.volume = 0.5;    // Ses seviyesi
+            xFilesLocal.play().catch(e => console.log("Ses için sayfaya bir kez tıkla!"));
+        }
+    }
+});
+
+pubnub.subscribe({ channels: ['aviation_unique_7788'] });
+
+// 6. GEÇMİŞİ ÇEKME
+pubnub.history(
+    {
+        channel: 'aviation_unique_7788',
+        count: 15,
+        stringifiedTimeToken: true,
+    },
+    function (status, response) {
+        if (status.category !== "PNError" && response.messages) {
+            response.messages.forEach((m) => {
+                renderMessage(m.entry.user, m.entry.text, true);
+            });
+        }
+    }
+);
+
+// 7. EKRANA MESAJ BASMA FONKSİYONU
+function renderMessage(user, text, isHistory) {
+    const out = document.getElementById('chat-output');
+    const div = document.createElement('div');
+    div.className = 'msg';
+    
+    if (isHistory) {
+        div.style.opacity = "0.6";
+        div.style.fontSize = "10px";
+        user = "GEÇMİŞ_" + user;
+    }
+
+    div.innerHTML = `<span class="msg-u">[${user}]</span> <span>${text}</span>`;
+    out.appendChild(div);
+    out.scrollTop = out.scrollHeight;
+}
+
+// 8. MESAJ GÖNDERME
+function doSend() {
+    const inp = document.getElementById('chat-in');
+    const val = inp.value.trim();
+    if(!val) return;
+    
+    pubnub.publish({
+        channel: 'aviation_unique_7788',
+        message: { user: myNick, text: val }
+    });
+    
+    inp.value = ''; // Kutuyu temizle, ekrana basmayı listener halledecek
+}
+
+// Enter tuşu
+document.getElementById('chat-in').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') doSend();
+});
+
 </script>
 
 
